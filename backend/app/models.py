@@ -1,24 +1,42 @@
-from flask_sqlalchemy import SQLAlchemy
+from app import db
 from datetime import datetime
 
-db = SQLAlchemy()
-
+# user model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(120), nullable=False)
-    portfolios = db.relationship('Portfolio', backref='owner', lazy=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+    
+    # relationship with Porfolio (1 user has N porfolios)
+    portfolios = db.relationship('Portfolio', backref='owner', lazy='dynamic')
 
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+# portfel model
 class Portfolio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    
+    # foreign key connect with uiser
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    stocks = db.relationship('Stock', backref='portfolio', lazy=True)
+    
+    # relationship with shares (1 portfolio has N shares)
+    stocks = db.relationship('Stock', backref='portfolio', lazy='dynamic')
 
+    def __repr__(self):
+        return f'<Portfolio {self.name}>'
+
+# model of single stock/share in portfoio
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ticker = db.Column(db.String(10), nullable=False) # Symbol np. "AAPL"
-    shares = db.Column(db.Numeric(10, 4), nullable=False) # Ilość akcji
-    purchase_price = db.Column(db.Numeric(10, 2), nullable=False)
+    ticker = db.Column(db.String(10), nullable=False) # np. "AAPL"
+    shares = db.Column(db.Numeric(10, 4), nullable=False) # Ilość akcji (może być ułamkowa)
+    purchase_price = db.Column(db.Numeric(10, 2), nullable=False) # Cena zakupu
+    purchase_date = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    
+    # foreign key connect with protfolio
     portfolio_id = db.Column(db.Integer, db.ForeignKey('portfolio.id'), nullable=False)
-    # current_price - będzie pobierane z API, nie z bazy
+
+    def __repr__(self):
+        return f'<Stock {self.ticker}, Shares: {self.shares}>'
