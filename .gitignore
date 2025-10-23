@@ -1,0 +1,24 @@
+# --------------------
+# 1. Back-end (Python/Flask)
+# --------------------
+venv/                 # Wirtualne środowisko Pythona
+__pycache__/          # Katalogi cache Pythona
+*.pyc                 # Skompilowane pliki Pythona
+.env                  # Plik ze zmiennymi środowiskowymi (zawiera SECRET_KEY, hasła do baz danych)
+/backend/instance/    # Katalog instancji Flaska (jeśli używany)
+
+# --------------------
+# 2. Front-end (Vue/Node.js)
+# --------------------
+/frontend/node_modules  # Wszystkie pobrane paczki Node.js
+/frontend/dist          # Skompilowane pliki produkcyjne Vue (budowane z "npm run build")
+.npm                    # Pliki cache Node
+npm-debug.log*
+
+# --------------------
+# 3. Docker/System/IDE
+# --------------------
+*.log                 # Ogólne pliki logów
+*.sqlite              # Lokalna baza danych SQLite (jeśli używana)
+.vscode/              # Konfiguracja VS Code
+.DS_Store             # Pliki macOS

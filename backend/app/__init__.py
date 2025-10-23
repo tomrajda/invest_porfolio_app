@@ -8,7 +8,8 @@ from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 
 # read env variables from .env
-load_dotenv()
+if os.environ.get('RAILWAY_ENVIRONMENT_ID') is None:
+    load_dotenv()
 
 # init extensions (bez przypisania do aplikacji)
 db = SQLAlchemy()

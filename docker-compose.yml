@@ -1,15 +1,14 @@
-version: '3.8'
 
 services:
   # db service
-  db:
+  postgres_local:
     image: postgres:14-alpine
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: portfolio_user
+      POSTGRES_PASSWORD: SuperSecret123
       POSTGRES_DB: portfolio_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432" # używane tylko lokalnie
 
@@ -27,7 +26,7 @@ services:
       DATABASE_URL: postgresql://user:password@db:5432/portfolio_db
       SECRET_KEY: super_secret_key # key from .env
     depends_on:
-      - db
+      - postgres_local
 
 volumes:
-  postgres_data:
+  db_data:

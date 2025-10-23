@@ -1,4 +1,3 @@
-# backend/wsgi.py
 from app import create_app
 
 # Tworzenie instancji aplikacji Flask
