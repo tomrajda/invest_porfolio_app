@@ -11,10 +11,15 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt 
 
 # KROK 5: COPY resztę kodu aplikacji do kontenera
+# Skopiuj zawartość katalogu backend (gdzie jesteśmy) do /app w kontenerze
 COPY . .
+
+# Ustawienie zmiennych środowiskowych dla Flaska
+ENV FLASK_APP=wsgi
+ENV PYTHONPATH=/app:$PYTHONPATH
 
 # KROK 6: Definicja portu, na którym nasłuchuje aplikacja
 EXPOSE 5000
 
-# KROK 7: Komenda uruchamiająca aplikację (już zdefiniowana w docker-compose, ale warto ją mieć)
+# KROK 7: Komenda uruchamiająca aplikację
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app"]
