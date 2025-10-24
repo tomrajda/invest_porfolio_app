@@ -1,1 +1,4 @@
--postgres konfiguracja, tabele, migracja
+-postgres konfiguracja, tabele, migracja - Rozwalilo sie na koniec
+
+-Dockerfile dla frontend
+-drugi serwis z develpoerska baza POSTGRES
