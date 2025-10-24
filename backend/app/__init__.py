@@ -8,8 +8,8 @@ from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 
 # read env variables from .env
-if os.environ.get('RAILWAY_ENVIRONMENT_ID') is None:
-    load_dotenv()
+#if os.environ.get('RAILWAY_ENVIRONMENT_ID') is None:
+    #load_dotenv()
 
 # init extensions (bez przypisania do aplikacji)
 db = SQLAlchemy()
@@ -24,9 +24,9 @@ def create_app(config_name=None):
     # -----------------------------------------------------------
     # 1. configure app
     # -----------------------------------------------------------
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default_secret_key')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'default_jwt_key')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
     # configure CORS (allow front-end Vue for communication)
     CORS(app, resources={r"/api/*": {"origins": "*"}}) 
