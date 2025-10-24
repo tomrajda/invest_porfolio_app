@@ -20,25 +20,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, getCurrentInstance } from 'vue';
+import { defineComponent, ref, getCurrentInstance } from 'vue'
 
 export default defineComponent({
   name: 'AuthForm',
-  setup() {
+  emits: ['login-success'],
+  setup(_, { emit }) {
     // reactive variables for form state and view
-    const username = ref('');
-    const password = ref('');
-    const isLogin = ref(true); // True: log in MODE, False: register MODE
-    const message = ref('');
-    const isSuccess = ref(false);
+    const username = ref('')
+    const password = ref('')
+    const isLogin = ref(true) // True: log in MODE, False: register MODE
+    const message = ref('')
+    const isSuccess = ref(false)
 
     // access to global API client
     const instance = getCurrentInstance();
-    const $api = instance?.appContext.config.globalProperties.$api;
+    const $api = instance?.appContext.config.globalProperties.$api
 
     const handleSubmit = async () => {
       message.value = '';
-      const endpoint = isLogin.value ? '/auth/login' : '/auth/register';
+      const endpoint = isLogin.value ? '/auth/login' : '/auth/register'
       
       try {
         const response = await $api.post(endpoint, {
@@ -50,18 +51,21 @@ export default defineComponent({
         
         if (isLogin.value) {
           // log in success: save TOKEN
-          const token = response.data.access_token;
-          localStorage.setItem('access_token', token);
-          message.value = 'Zalogowano pomyślnie! Token zapisany.';
-          console.log('Access Token:', token);
+          const token = response.data.access_token
+          localStorage.setItem('access_token', token)
+          message.value = 'Zalogowano pomyślnie! Token zapisany.'
           
+          emit('login-success')
           // to do: ADD HERE REDIRECTION
         } else {
           // registration success
-          message.value = 'Rejestracja udana! Możesz się teraz zalogować.';
+          message.value = 'Rejestracja udana! Możesz się teraz zalogować.'
           isLogin.value = true; // switch to login MODE
         }
-
+      
+      username.value = '';
+      password.value = '';
+      
       } catch (error: any) {
         isSuccess.value = false;
         // backend error handling (i.e. 401, 409)

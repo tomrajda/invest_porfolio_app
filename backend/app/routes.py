@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app import db, bcrypt, jwt
-from app.models import User
+from app.models import User, Portfolio, Stock
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 # create Blueprint for API
@@ -51,13 +51,53 @@ def login():
         return jsonify({"msg": "Bad username or password"}), 401
 
 # -----------------------------------------------------------
-# endpoint: test (login required)
+# endpoint: create new portfolio
 # -----------------------------------------------------------
-@api.route('/protected', methods=['GET'])
-@jwt_required() #dekorator wymagający podania tokenu JWT
-def protected():
-    # Pobranie id użytkownika z tokenu
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+@api.route('/portfolios', methods=['POST'])
+@jwt_required()
+def create_portfolio():
+    # 1. get user ID from token JWT
+    user_id = get_jwt_identity()
     
-    return jsonify(logged_in_as=user.username), 200
+    # 2. get data from request
+    data = request.get_json()
+    name = data.get('name')
+
+    if not name:
+        return jsonify({"msg": "Portfolio name is required"}), 400
+
+    # 3. check if portfolio with the same name already exists for this user
+    existing_portfolio = Portfolio.query.filter_by(user_id=user_id, name=name).first()
+    if existing_portfolio:
+        return jsonify({"msg": "Portfolio with this name already exists"}), 409
+
+    # 4. create and save new portfolio
+    new_portfolio = Portfolio(name=name, user_id=user_id)
+    
+    db.session.add(new_portfolio)
+    db.session.commit()
+    
+    # 5. success response
+    return jsonify({
+        "msg": "Portfolio created successfully",
+        "id": new_portfolio.id,
+        "name": new_portfolio.name
+    }), 201
+
+# -----------------------------------------------------------
+# endpoint: test // get portfolios for logged-in user
+# -----------------------------------------------------------
+@api.route('/portfolios', methods=['GET'])
+@jwt_required()
+def get_portfolios():
+    user_id = get_jwt_identity()
+    
+    portfolios = Portfolio.query.filter_by(user_id=user_id).all()
+    
+    # convert porfolios object to JSONs porfolios
+    results = [{
+        "id": p.id,
+        "name": p.name
+    } for p in portfolios]
+    
+    return jsonify(results), 200
