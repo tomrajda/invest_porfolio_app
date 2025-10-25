@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 # user model
 class User(db.Model):
@@ -30,10 +30,10 @@ class Portfolio(db.Model):
 # model of single stock/share in portfoio
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ticker = db.Column(db.String(10), nullable=False) # np. "AAPL"
-    shares = db.Column(db.Numeric(10, 4), nullable=False) # Ilość akcji (może być ułamkowa)
-    purchase_price = db.Column(db.Numeric(10, 2), nullable=False) # Cena zakupu
-    purchase_date = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    ticker = db.Column(db.String(10), nullable=False) # i.e. "AAPL"
+    shares = db.Column(db.Numeric(10, 4), nullable=False) # stock number (moze byc ulamkowa)
+    purchase_price = db.Column(db.Numeric(10, 2), nullable=False) # purchase price
+    purchase_date = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     
     # foreign key connect with protfolio
     portfolio_id = db.Column(db.Integer, db.ForeignKey('portfolio.id'), nullable=False)

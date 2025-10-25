@@ -15,35 +15,36 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, getCurrentInstance, onMounted } from 'vue';
+import { defineComponent, ref, getCurrentInstance, onMounted } from 'vue'
 
 export default defineComponent({
   name: 'CreatePortfolioForm',
-  setup() {
-    const portfolioName = ref('');
-    const message = ref('');
-    const isSuccess = ref(false);
-    const authToken = ref('');
+  emits: ['portfolio-created'],
+  setup(_, { emit }) {
+    const portfolioName = ref('')
+    const message = ref('')
+    const isSuccess = ref(false)
+    const authToken = ref('')
 
-    const instance = getCurrentInstance();
-    const $api = instance?.appContext.config.globalProperties.$api;
+    const instance = getCurrentInstance()
+    const $api = instance?.appContext.config.globalProperties.$api
 
     onMounted(() => {
       // download token during loading of component
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('access_token')
       if (token) {
-        authToken.value = token;
+        authToken.value = token
       }
     });
 
     const createPortfolio = async () => {
       if (!authToken.value) {
-        message.value = 'Błąd: Token autoryzacji jest nieobecny. Zaloguj się ponownie.';
-        isSuccess.value = false;
+        message.value = 'Błąd: Token autoryzacji jest nieobecny. Zaloguj się ponownie.'
+        isSuccess.value = false
         return;
       }
 
-      message.value = 'Tworzenie...';
+      message.value = 'Tworzenie...'
 
       try {
         const response = await $api.post('/portfolios', 
@@ -55,16 +56,17 @@ export default defineComponent({
           }
         );
 
-        isSuccess.value = true;
-        message.value = `Sukces! Portfel '${response.data.name}' (ID: ${response.data.id}) utworzony.`;
-        portfolioName.value = ''; // clear field
+        isSuccess.value = true
+        message.value = `Sukces! Portfel '${response.data.name}' (ID: ${response.data.id}) utworzony.`
+        portfolioName.value = '' // clear field
+        emit('portfolio-created')
 
       } catch (error: any) {
         isSuccess.value = false;
         if (error.response) {
-          message.value = `Błąd: ${error.response.data.msg || error.response.statusText}`;
+          message.value = `Błąd: ${error.response.data.msg || error.response.statusText}`
         } else {
-          message.value = 'Błąd sieci. Sprawdź backend.';
+          message.value = 'Błąd sieci. Sprawdź backend.'
         }
       }
     };

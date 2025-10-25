@@ -38,7 +38,7 @@ export default defineComponent({
     const $api = instance?.appContext.config.globalProperties.$api
 
     const handleSubmit = async () => {
-      message.value = '';
+      message.value = ''
       const endpoint = isLogin.value ? '/auth/login' : '/auth/register'
       
       try {
@@ -70,9 +70,9 @@ export default defineComponent({
         isSuccess.value = false;
         // backend error handling (i.e. 401, 409)
         if (error.response) {
-          message.value = `Błąd: ${error.response.data.msg || error.response.statusText}`;
+          message.value = `Błąd: ${error.response.data.msg || error.response.statusText}`
         } else {
-          message.value = 'Wystąpił błąd sieci. Sprawdź, czy backend działa.';
+          message.value = 'Wystąpił błąd sieci. Sprawdź, czy backend działa.'
         }
       }
     };

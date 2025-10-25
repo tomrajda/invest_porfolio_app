@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from app import db, bcrypt, jwt
 from app.models import User, Portfolio, Stock
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from .services.finnhub_service import get_current_price
 
 # create Blueprint for API
 api = Blueprint('api', __name__)
@@ -45,7 +46,7 @@ def login():
     # verify password and user existence
     if user and bcrypt.check_password_hash(user.password_hash, password):
         # generate token JWT (dane, które będą w tokenie to id użytkownika)
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
         return jsonify(access_token=access_token), 200
     else:
         return jsonify({"msg": "Bad username or password"}), 401
@@ -57,7 +58,10 @@ def login():
 @jwt_required()
 def create_portfolio():
     # 1. get user ID from token JWT
-    user_id = get_jwt_identity()
+    try:
+        user_id = int(get_jwt_identity()) 
+    except ValueError:
+        return jsonify({"msg": "Invalid token subject type"}), 400
     
     # 2. get data from request
     data = request.get_json()
@@ -85,19 +89,123 @@ def create_portfolio():
     }), 201
 
 # -----------------------------------------------------------
-# endpoint: test // get portfolios for logged-in user
+# endpoint: get all portfolios for user
 # -----------------------------------------------------------
 @api.route('/portfolios', methods=['GET'])
 @jwt_required()
 def get_portfolios():
-    user_id = get_jwt_identity()
+    # 1. get user ID from token JWT
+    try:
+        user_id = int(get_jwt_identity()) 
+    except ValueError:
+        return jsonify({"msg": "Invalid token subject type"}), 400
     
     portfolios = Portfolio.query.filter_by(user_id=user_id).all()
     
-    # convert porfolios object to JSONs porfolios
+    # conversion of Portfolio objects to JSON
     results = [{
         "id": p.id,
         "name": p.name
     } for p in portfolios]
     
     return jsonify(results), 200
+
+# -----------------------------------------------------------
+# endpoint: add new stock to portfolio
+# -----------------------------------------------------------
+@api.route('/portfolios/<int:portfolio_id>/stocks', methods=['POST'])
+@jwt_required()
+def add_stock_to_portfolio(portfolio_id):
+    # 1. get user ID from token JWT
+    try:
+        user_id = int(get_jwt_identity()) 
+    except ValueError:
+        return jsonify({"msg": "Invalid token subject type"}), 400
+    
+    # 2. get data from request
+    data = request.get_json()
+
+    portfolio = Portfolio.query.get(portfolio_id)
+
+    # check if portfolio exists and belongs to user
+    if not portfolio or portfolio.user_id != user_id:
+        return jsonify({"msg": "Portfolio not found or access denied"}), 404
+
+    # 3. input data validation
+    try:
+        ticker = data.get('ticker').upper()
+        shares = float(data.get('shares'))
+        purchase_price = float(data.get('purchase_price'))
+    except (ValueError, AttributeError):
+        return jsonify({"msg": "Invalid data format (ticker, shares, or price)"}), 400
+
+    if not ticker or shares <= 0 or purchase_price <= 0:
+        return jsonify({"msg": "Invalid input: Ticker, shares and purchase price are required and must be positive."}), 400
+
+    # 4. create and save new stock
+    new_stock = Stock(
+        ticker=ticker,
+        shares=shares,
+        purchase_price=purchase_price,
+        portfolio_id=portfolio.id
+    )
+
+    db.session.add(new_stock)
+    db.session.commit()
+
+    return jsonify({
+        "msg": f"Stock {ticker} added to portfolio {portfolio.name} successfully.",
+        "stock_id": new_stock.id,
+        "ticker": new_stock.ticker
+    }), 201
+
+# -----------------------------------------------------------
+# endpoint: download full porfolio with stock prices
+# -----------------------------------------------------------
+@api.route('/portfolios/<int:portfolio_id>/valuation', methods=['GET']) # <-- NOWY URL!
+@jwt_required()
+def get_full_portfolio_valuation(portfolio_id):
+    # 1. get user ID from token JWT
+    try:
+        user_id = int(get_jwt_identity()) 
+    except ValueError:
+        return jsonify({"msg": "Invalid token subject type"}), 400
+    
+    portfolio = Portfolio.query.get(portfolio_id)
+
+    if not portfolio or portfolio.user_id != user_id:
+        return jsonify({"msg": "Portfolio not found or access denied"}), 404
+
+    total_market_value = 0.0
+    stocks_with_valuation = []
+
+    stocks = Stock.query.filter_by(portfolio_id=portfolio.id).all()
+
+    for stock in stocks:
+        # 2. get current price from external API Finnhub
+        current_price = get_current_price(stock.ticker) 
+        
+        market_value = 0.0
+        profit_loss = 0.0
+        
+        if current_price is not None:
+            market_value = current_price * float(stock.shares)
+            initial_value = float(stock.purchase_price) * float(stock.shares)
+            profit_loss = market_value - initial_value
+            total_market_value += market_value
+
+        stocks_with_valuation.append({
+            "id": stock.id,
+            "ticker": stock.ticker,
+            "shares": str(stock.shares),
+            "purchase_price": str(stock.purchase_price),
+            "current_price": current_price,
+            "market_value": round(market_value, 2),
+            "profit_loss": round(profit_loss, 2)
+        })
+
+    return jsonify({
+        "portfolio_name": portfolio.name,
+        "stocks": stocks_with_valuation,
+        "total_market_value": round(total_market_value, 2)
+    }), 200

@@ -63,3 +63,68 @@ button:hover {
   margin: 20px auto;
   width: 400px;
 }
+
+.portfolio-manager {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.list-container ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+.list-container li {
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.list-container li:hover {
+    background-color: #f0f0f0;
+}
+.list-container .selected {
+    background-color: #42b983;
+    color: white;
+    border-color: #368a6b;
+}
+
+.valuation-container {
+    max-width: 100%;
+    margin-top: 20px;
+}
+.summary {
+    font-size: 1.2em;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.total-value {
+    font-weight: bold;
+    color: #007bff;
+}
+.stocks-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.stocks-table th, .stocks-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+}
+.stocks-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+.profit {
+    color: green;
+    font-weight: bold;
+}
+.loss {
+    color: red;
+    font-weight: bold;
+}

@@ -10,7 +10,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" # używane tylko lokalnie
+      - "5432:5432"
 
   # bcknd (flask) serwis  
   web:
@@ -24,10 +24,9 @@ services:
       - "5000:5000"
     environment:
       DATABASE_URL: postgresql://postgres:mypassword@postgres_local:5432/portfolio_db
-      
       SECRET_KEY: '1234567890'
       JWT_SECRET_KEY: '1234567890'
-      
+      FINNHUB_API_KEY: 'd3uj149r01qil4aqb7n0d3uj149r01qil4aqb7ng'
       FLASK_APP: wsgi
     depends_on:
       - postgres_local
