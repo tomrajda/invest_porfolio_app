@@ -12,7 +12,17 @@
         :class="{ 'selected': portfolio.id === selectedPortfolioId }"
         @click="$emit('select-portfolio', portfolio.id, portfolio.name)"
       >
-        {{ portfolio.name }} (ID: {{ portfolio.id }})
+        <div class="list-item-content"> <span class="portfolio-name">
+              {{ portfolio.name }} (ID: {{ portfolio.id }})
+          </span>
+            
+          <button 
+              @click.stop="confirmDelete(portfolio.id, portfolio.name)" 
+              class="delete-portfolio-btn"
+          >
+            Delete
+          </button>
+        </div>
       </li>
     </ul>
   </div>
@@ -34,8 +44,8 @@ export default defineComponent({
       default: null 
     }
   },
-  emits: ['select-portfolio'],
-  setup() {
+  emits: ['select-portfolio', 'portfolio-deleted'],
+  setup(_,  { emit }) {
     const portfolios = ref<Portfolio[]>([])
     const loading = ref(false)
 
@@ -62,12 +72,42 @@ export default defineComponent({
       }
     }
     
+    const deletePortfolio = async (portfolioId: number, portfolioName: string) => {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        try {
+            await $api.delete(`/portfolios/${portfolioId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+
+            // send event to parent
+            emit('portfolio-deleted'); 
+                
+            alert(`Portfel '${portfolioName}' usunięty pomyślnie.`);
+
+        } catch (error: any) {
+                alert(error.response?.data?.msg || 'Błąd: Nie udało się usunąć portfela.');
+            }
+        };
+
+    const confirmDelete = (id: number, name: string) => {
+        if (confirm(
+          `Czy na pewno chcesz usunąć portfel '${name}'? 
+        Zostaną usunięte wszystkie powiązane akcje!`)) {
+                deletePortfolio(id, name);
+            }
+    };
+
     onMounted(fetchPortfolios)
 
     return {
       portfolios,
       loading,
       fetchPortfolios,
+      confirmDelete,
     }
   },
 })

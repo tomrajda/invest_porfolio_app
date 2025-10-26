@@ -22,7 +22,12 @@ class Portfolio(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
     # relationship with shares (1 portfolio has N shares)
-    stocks = db.relationship('Stock', backref='portfolio', lazy='dynamic')
+    stocks = db.relationship(
+        'Stock', 
+        backref='portfolio', 
+        lazy='dynamic',
+        cascade="all, delete-orphan" # delete portfolio -> delete all stocks
+    )
 
     def __repr__(self):
         return f'<Portfolio {self.name}>'

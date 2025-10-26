@@ -1,13 +1,9 @@
-/* frontend/src/style.css */
-
-/* Globalne style dla BODY (opcjonalne, ale dobre dla bazowej czytelności) */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
 }
 
-/* Style przeniesione z AuthForm.vue */
 .auth-container {
   max-width: 400px;
   margin: 50px auto;
@@ -128,4 +124,31 @@ button:hover {
 .loss {
     color: red;
     font-weight: bold;
+}
+
+.list-item-content {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%; 
+}
+
+.portfolio-name {
+    flex-grow: 1;
+    text-align: left;
+    margin-right: 15px; 
+}
+
+.delete-portfolio-btn {
+    padding: 5px 10px; 
+    font-size: 0.9em;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.delete-portfolio-btn:hover {
+    background-color: #d32f2f;
 }

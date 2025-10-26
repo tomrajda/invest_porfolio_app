@@ -15,7 +15,7 @@
 
       <PortfolioList 
       :key="portfolioListKey" :selected-portfolio-id="selectedPortfolioId"
-      @select-portfolio="selectPortfolio"
+      @select-portfolio="selectPortfolio" @portfolio-deleted="refreshPortfolioList"
       />
       
       

@@ -216,7 +216,11 @@ def get_full_portfolio_valuation(portfolio_id):
 @api.route('/portfolios/<int:portfolio_id>/stocks/<int:stock_id>', methods=['DELETE'])
 @jwt_required()
 def delete_stock_from_portfolio(portfolio_id, stock_id):
-    user_id = int(get_jwt_identity())
+    # 1. get user ID from token JWT
+    try:
+        user_id = int(get_jwt_identity()) 
+    except ValueError:
+        return jsonify({"msg": "Invalid token subject type"}), 400
     
     # 1. verify stock and its ownership
     stock = Stock.query.filter_by(id=stock_id, portfolio_id=portfolio_id).first()
@@ -234,3 +238,33 @@ def delete_stock_from_portfolio(portfolio_id, stock_id):
     db.session.commit()
 
     return jsonify({"msg": f"Stock {stock.ticker} (ID: {stock_id}) successfully removed."}), 200
+
+@api.route('/portfolios/<int:portfolio_id>', methods=['DELETE'])
+@jwt_required()
+def delete_portfolio(portfolio_id):
+    # 1. get user ID from token JWT
+    try:
+        user_id = int(get_jwt_identity()) 
+    except ValueError:
+        return jsonify({"msg": "Invalid token subject type"}), 400
+    
+    portfolio = Portfolio.query.get(portfolio_id)
+
+    # 2. check permissions
+    if not portfolio or portfolio.user_id != user_id:
+        return jsonify({"msg": "Portfolio not found or access denied."}), 404
+
+    portfolio_name = portfolio.name
+    
+    try:
+        # 2. delete portfolio (delete all associated stocks 
+        # will be deleted thanks to model)
+        db.session.delete(portfolio)
+        db.session.commit()
+
+        return jsonify({"msg": f"Portfolio '{portfolio_name}' and all associated stocks have been permanently deleted."}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database error during portfolio deletion: {e}")
+        return jsonify({"msg": "An internal error occurred during deletion."}), 500
