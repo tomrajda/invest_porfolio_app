@@ -209,3 +209,28 @@ def get_full_portfolio_valuation(portfolio_id):
         "stocks": stocks_with_valuation,
         "total_market_value": round(total_market_value, 2)
     }), 200
+
+# -----------------------------------------------------------
+# endpoint: remove shares from porfolio (DELETE)
+# -----------------------------------------------------------
+@api.route('/portfolios/<int:portfolio_id>/stocks/<int:stock_id>', methods=['DELETE'])
+@jwt_required()
+def delete_stock_from_portfolio(portfolio_id, stock_id):
+    user_id = int(get_jwt_identity())
+    
+    # 1. verify stock and its ownership
+    stock = Stock.query.filter_by(id=stock_id, portfolio_id=portfolio_id).first()
+    
+    if not stock:
+        return jsonify({"msg": "Stock not found in this portfolio."}), 404
+        
+    # 2. verify portfolio ownership
+    portfolio = Portfolio.query.get(portfolio_id)
+    if not portfolio or portfolio.user_id != user_id:
+        return jsonify({"msg": "Access denied to this portfolio."}), 403
+
+    # 3. delete stock
+    db.session.delete(stock)
+    db.session.commit()
+
+    return jsonify({"msg": f"Stock {stock.ticker} (ID: {stock_id}) successfully removed."}), 200

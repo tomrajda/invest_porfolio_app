@@ -1,15 +1,15 @@
 <template>
   <div class="portfolio-form-container">
-    <h3>Utwórz nowy portfel</h3>
+    <h3>Create new portfolio</h3>
     <form @submit.prevent="createPortfolio">
       <input type="text" v-model="portfolioName" placeholder="Nazwa portfela" required />
-      <button type="submit" :disabled="!authToken">Utwórz</button>
+      <button type="submit" :disabled="!authToken">Create</button>
     </form>
     
     <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">{{ message }}</p>
     
     <div v-if="!authToken" class="error">
-      Musisz być zalogowany, aby tworzyć portfele.
+      You must be logged in to create portfolios.
     </div>
   </div>
 </template>

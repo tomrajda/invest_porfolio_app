@@ -10,7 +10,7 @@
         v-for="portfolio in portfolios" 
         :key="portfolio.id" 
         :class="{ 'selected': portfolio.id === selectedPortfolioId }"
-        @click="$emit('select-portfolio', portfolio.id)"
+        @click="$emit('select-portfolio', portfolio.id, portfolio.name)"
       >
         {{ portfolio.name }} (ID: {{ portfolio.id }})
       </li>
@@ -19,11 +19,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, getCurrentInstance } from 'vue';
+import { defineComponent, ref, onMounted, getCurrentInstance } from 'vue'
 
 interface Portfolio {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 export default defineComponent({
@@ -36,15 +36,15 @@ export default defineComponent({
   },
   emits: ['select-portfolio'],
   setup() {
-    const portfolios = ref<Portfolio[]>([]);
-    const loading = ref(false);
+    const portfolios = ref<Portfolio[]>([])
+    const loading = ref(false)
 
-    const instance = getCurrentInstance();
-    const $api = instance?.appContext.config.globalProperties.$api;
+    const instance = getCurrentInstance()
+    const $api = instance?.appContext.config.globalProperties.$api
 
     const fetchPortfolios = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return; 
+      const token = localStorage.getItem('access_token')
+      if (!token) return
 
       loading.value = true;
       try {
@@ -52,23 +52,23 @@ export default defineComponent({
           headers: {
             Authorization: `Bearer ${token}`
           }
-        });
+        })
         portfolios.value = response.data;
 
       } catch (error) {
-        console.error('Błąd ładowania portfeli:', error);
+        console.error('Porfolio loading error:', error)
       } finally {
-        loading.value = false;
+        loading.value = false
       }
-    };
-
-    onMounted(fetchPortfolios);
+    }
+    
+    onMounted(fetchPortfolios)
 
     return {
       portfolios,
       loading,
       fetchPortfolios,
-    };
+    }
   },
-});
+})
 </script>
