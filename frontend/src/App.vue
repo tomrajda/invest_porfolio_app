@@ -1,36 +1,49 @@
 <template>
   <div id="app-container">
-    <h1>Portfel Inwestycyjny</h1>
+    
+    <header class="app-header">
+        <h1>portfolio tracker</h1>
+        <button v-if="isAuthenticated" @click="handleLogout" class="logout-btn">
+            Wyloguj
+        </button>
+    </header>
 
     <AuthForm v-if="!isAuthenticated" @login-success="handleLoginSuccess" />
-    <button v-else @click="handleLogout" class="logout-btn">Wyloguj</button>
     
-    <hr>
-    
-    <div v-if="isAuthenticated" class="portfolio-manager">
+    <div v-else class="portfolio-manager">
       
-      <CreatePortfolioForm @portfolio-created="refreshPortfolioList" />
-      
-      <hr>
-
-      <PortfolioList 
-      :key="portfolioListKey" :selected-portfolio-id="selectedPortfolioId"
-      @select-portfolio="selectPortfolio" @portfolio-deleted="refreshPortfolioList"
-      />
-      
-      
-      <div v-if="selectedPortfolioId !== null">
-        <!-- <h2>Aktywny Portfel: {{ selectedPortfolioName }}</h2> -->
-        <AddStockForm 
-          :portfolio-id="selectedPortfolioId" 
-          :portfolio-name="selectedPortfolioName" 
-          @stock-added="refreshValuationData"/>
-        <PortfolioValuation :key="valuationKey" :portfolio-id="selectedPortfolioId" />
+      <div class="portfolio-list-area">
+        <CreatePortfolioForm @portfolio-created="refreshPortfolioList" /> 
+        
+        <hr style="border-color: #4a4a6e; margin: 20px 0;">
+        
+        <PortfolioList 
+          :key="portfolioListKey"
+          :selected-portfolio-id="selectedPortfolioId"
+          @select-portfolio="selectPortfolio"
+          @portfolio-deleted="refreshPortfolioList"
+        />
       </div>
-      <div v-else class="info-message">Wybierz portfel z listy, aby dodać akcje.</div>
-    </div>
-    <div v-else class="info-message">Proszę się zalogować, aby uzyskać dostęp.</div>
 
+      <div class="portfolio-details-area" v-if="selectedPortfolioId !== null">
+        <PortfolioValuation :key="valuationKey" :portfolio-id="selectedPortfolioId" />
+        
+        <hr style="border-color: #4a4a6e; margin: 20px 0;">
+
+        <div class="add-stock-area">
+            <h2>Add stock</h2>
+            <AddStockForm 
+              :portfolio-id="selectedPortfolioId"
+              :portfolio-name="selectedPortfolioName"
+              @stock-added="refreshValuationData"
+            />
+        </div>
+      </div>
+      <div v-else class="info-message" style="grid-column: 1 / -1; text-align: center;">
+          Wybierz portfel z listy lub utwórz nowy, aby wyświetlić szczegóły i akcje.
+      </div>
+
+    </div>
   </div>
 </template>
 

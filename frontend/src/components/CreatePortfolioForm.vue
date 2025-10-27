@@ -58,6 +58,12 @@ export default defineComponent({
 
         isSuccess.value = true
         message.value = `Sukces! Portfel '${response.data.name}' (ID: ${response.data.id}) utworzony.`
+        
+        setTimeout(() => {
+            message.value = '';
+            isSuccess.value = false; 
+        }, 5000);
+        
         portfolioName.value = '' // clear field
         emit('portfolio-created')
 

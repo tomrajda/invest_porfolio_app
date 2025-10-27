@@ -6,10 +6,9 @@
     <div v-else-if="valuationData">
       <h2>Valuation</h2>
       
-      <div class="summary">
-        Total market walue: 
-        <span class="total-value">{{ formatCurrency(valuationData.total_market_value) }}</span>
-      </div>
+    <div class="total-value-container">
+      <span class="total-value">{{ formatCurrency(valuationData.total_market_value) }}</span>
+    </div>
 
       <table class="stocks-table">
         <thead>

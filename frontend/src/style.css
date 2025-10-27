@@ -1,154 +1,336 @@
+/* frontend/src/style.css - Motyw Minimalist Blue */
+
+/* Zmienne dla spójności i łatwej zmiany koloru akcentu */
+:root {
+    --color-primary: #1e88e5;     /* Głęboki, nowoczesny niebieski */
+    --color-secondary: #0d47a1;   /* Ciemniejszy niebieski (tło akcji) */
+    --bg-dark: #12121e;           /* Głęboki, przyjemny granat */
+    --bg-surface: #1e2133;        /* Tło kart i paneli */
+    --text-light: #f4f4f4;
+    --border-subtle: #33395c;
+    --success-color: #4CAF50;     /* Zieleń dla zysku */
+    --error-color: #ff5252;       /* Czerwień dla straty/błędu */
+}
+
+/* Globalne i Typografia */
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+    margin: 0;
+    font-family: 'Inter', 'Roboto', sans-serif;
+    background-color: var(--bg-dark); 
+    color: var(--text-light);
+    min-height: 100vh;
 }
-
-.auth-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
+* {
+    box-sizing: border-box;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.3s;
 }
-input {
-  display: block;
-  width: 90%;
-  padding: 10px;
-  margin: 10px auto;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+#app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
 }
-button {
-  padding: 10px 20px;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-button:hover {
-  background-color: #368a6b;
-}
-.toggle-mode {
-  margin-top: 15px;
-  color: #35495e;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.error { color: red; margin-top: 15px; font-weight: bold; }
-.success { color: green; margin-top: 15px; font-weight: bold; }
-
-.portfolio-form-container {
-  max-width: 600px;
-  margin: 30px auto;
-  padding: 20px;
-  border: 1px solid #42b983;
-  border-radius: 8px;
-  background-color: #e9f5f1;
-}
-
-.info-message {
-  padding: 10px;
-  background-color: #ffe0b2;
-  border-left: 5px solid #ff9800;
-  margin: 20px auto;
-  width: 400px;
-}
-
-.portfolio-manager {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.list-container ul {
-    list-style: none;
-    padding: 0;
-    width: 100%;
-}
-.list-container li {
-    padding: 10px;
-    margin-bottom: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-.list-container li:hover {
-    background-color: #f0f0f0;
-}
-.list-container .selected {
-    background-color: #42b983;
-    color: white;
-    border-color: #368a6b;
-}
-
-.valuation-container {
-    max-width: 100%;
-    margin-top: 20px;
-}
-.summary {
-    font-size: 1.2em;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    text-align: center;
-}
-.total-value {
-    font-weight: bold;
-    color: #007bff;
-}
-.stocks-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 100px;
-}
-.stocks-table th, .stocks-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: right;
-}
-.stocks-table th {
-    background-color: #f2f2f2;
-    text-align: left;
-}
-.profit {
-    color: green;
-    font-weight: bold;
-}
-.loss {
-    color: red;
-    font-weight: bold;
-}
-
-.list-item-content {
+/* NAGŁÓWEK I LOGO */
+.app-header {
     display: flex;
-    justify-content: space-between; 
-    align-items: center; 
-    width: 100%; 
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--color-primary); 
+    margin-bottom: 40px;
 }
-
-.portfolio-name {
-    flex-grow: 1;
-    text-align: left;
-    margin-right: 15px; 
+.app-header h1 {
+    font-size: 2em;
+    color: var(--text-light);
+    border-left: 5px solid var(--color-primary); /* Akcent boczny */
+    padding-left: 10px;
+    margin: 0;
 }
-
-.delete-portfolio-btn {
-    padding: 5px 10px; 
-    font-size: 0.9em;
-    background-color: #f44336;
+.logout-btn {
+    padding: 8px 18px;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     border-radius: 4px;
+    font-weight: 600;
+}
+.logout-btn:hover {
+    background-color: #0d47a1;
+    box-shadow: 0 4px 10px rgba(30, 136, 229, 0.4);
+}
+
+/* FORMULARZE AUTORYZACJI */
+.auth-container {
+    max-width: 380px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: var(--bg-surface);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+input {
+    background-color: #2a2d40;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-light);
+    padding: 10px;
+    width: 90%;
+    margin: 10px auto;
+}
+input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 5px rgba(30, 136, 229, 0.5);
+}
+button[type="submit"], .action-btn {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+button[type="submit"]:hover, .action-btn:hover {
+    background-color: #0d47a1;
+    transform: translateY(-1px);
+}
+.toggle-mode { color: var(--color-primary); cursor: pointer; text-decoration: underline; margin-top: 15px; }
+/* UKŁAD GŁÓWNY (GRID - dla wyrównania i nowoczesności) */
+.portfolio-manager {
+    display: grid;
+    grid-template-columns: 320px 1fr; 
+    gap: 30px;
+    align-items: start;
+    padding-top: 10px;
+}
+
+/* PANELA BOCZNY/GŁÓWNY */
+.portfolio-list-area, .valuation-container, .add-stock-area {
+    background-color: var(--bg-surface);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================================= */
+/* 4. LISTA PORTFELI */
+/* ========================================================= */
+.list-container ul { list-style: none; padding: 0; }
+.list-container li {
+    background-color: #2a2d40;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 10px;
+    border-radius: 4px;
     cursor: pointer;
-    flex-shrink: 0;
+    padding: 0;
+    overflow: hidden;
+}
+.list-container li:hover {
+    background-color: #383c57;
+}
+.list-item-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+}
+/* STYL WYBRANEGO PORTFELA */
+.list-container .selected .list-item-content {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: bold;
+}
+.delete-portfolio-btn {
+    padding: 4px 8px;
+    background-color: var(--error-color);
+    font-size: 0.75em;
+    border-radius: 3px;
 }
 .delete-portfolio-btn:hover {
     background-color: #d32f2f;
 }
+
+/* ========================================================= */
+/* 5. WYCENA I TABELA AKCJI */
+/* ========================================================= */
+.valuation-container h2, .add-stock-area h2 {
+    color: var(--color-primary);
+    border-bottom: 1px dashed var(--border-subtle);
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+.total-value {
+    color: var(--color-primary);
+    font-size: 1.6em;
+    font-weight: 700;
+}
+.stocks-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+.stocks-table th, .stocks-table td {
+    padding: 12px;
+    text-align: right;
+    border: none;
+    background-color: #2a2d40;
+    border-radius: 4px;
+}
+.stocks-table th {
+    background-color: var(--color-secondary);
+    color: var(--text-light);
+    font-weight: bold;
+    text-align: left;
+}
+.stocks-table td:first-child { text-align: left; }
+
+.stocks-table tbody tr:hover td {
+    background-color: #383c57;
+}
+
+/* Kolory Zysk/Strata */
+.profit { color: var(--success-color); font-weight: 600; }
+.loss { color: var(--error-color); font-weight: 600; }
+
+
+
+
+/* frontend/src/style.css - Ostateczne Dopracowanie Tabeli i Przycisków */
+
+/* ========================================================= */
+/* (Wszystkie poprzednie sekcje: 1. Globalne, 2. Nagłówek/Formularze, 3. Układ Główny, 4. Lista Portfeli pozostają takie same) */
+/* ========================================================= */
+
+/* ========================================================= */
+/* 5. WYCENA I TABELA AKCJI (Ostateczne Dopracowanie) */
+/* ========================================================= */
+.valuation-container {
+    background-color: var(--bg-surface);
+    padding: 30px; 
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border: 1px solid #2a2d40;
+}
+.valuation-container h2, .add-stock-area h2 {
+    color: var(--color-primary);
+    border-bottom: 1px dashed var(--border-subtle);
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+.total-value {
+    color: var(--color-primary);
+    font-size: 1.8em;
+    font-weight: 700;
+    text-align: right;
+    display: block;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-subtle);
+}
+
+/* TABELA */
+.stocks-table {
+    width: 100%;
+    border-collapse: collapse; /* KLUCZOWA ZMIANA: Usuń separację, aby ramki były spójne */
+    margin-top: 20px;
+    background-color: #2a2d40; /* Tło dla całej tabeli */
+    border-radius: 4px; /* Zaokrąglenie całej tabeli */
+    overflow: hidden; /* Upewnij się, że zaokrąglenia są widoczne */
+}
+.stocks-table th {
+    background-color: var(--color-secondary); 
+    color: var(--text-light);
+    font-weight: bold;
+    text-align: right;
+    padding: 14px;
+    border-bottom: 1px solid var(--border-subtle); /* Linia pod nagłówkiem */
+}
+.stocks-table th:first-child { text-align: left; }
+
+.stocks-table td {
+    background-color: #2a2d40; /* Tło wiersza */
+    border-bottom: 1px solid var(--border-subtle); /* Separator wierszy */
+    padding: 14px;
+    text-align: right;
+}
+.stocks-table td:first-child { text-align: left; }
+.stocks-table tbody tr:last-child td {
+    border-bottom: none; /* Usuń dolną ramkę dla ostatniego wiersza */
+}
+
+/* HOVER NA CAŁY WIERSZ */
+.stocks-table tbody tr:hover td {
+    background-color: #33395c; 
+    /* Usunięcie box-shadow z komórek, aby był na poziomie wiersza jeśli trzeba */
+}
+
+/* KOLORYZACJA ZYSK/STRATA */
+.profit { 
+    color: var(--success-color); 
+    font-weight: 700; 
+    text-shadow: 0 0 4px rgba(76, 175, 80, 0.5); 
+}
+.loss { 
+    color: var(--error-color); 
+    font-weight: 700; 
+    text-shadow: 0 0 4px rgba(255, 82, 82, 0.5); 
+}
+
+/* ========================================================= */
+/* PRZYCISKI DELETE (DOPRACOWANE) */
+/* ========================================================= */
+
+/* Przycisk DELETE w Liscie Portfeli */
+.delete-portfolio-btn {
+    padding: 6px 12px; /* Większy padding */
+    background-color: var(--color-danger);
+    color: white;
+    border: none; /* Upewnij się, że nie ma ramki */
+    border-radius: 4px;
+    font-size: 0.85em;
+    opacity: 0.9;
+    position: relative; /* Dla ikony */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.delete-portfolio-btn::before { /* Ikona kosza */
+    content: '🗑️'; /* Użycie emoji jako ikony */
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+.delete-portfolio-btn:hover {
+    background-color: #ff5252; /* Jaśniejsza czerwień */
+    opacity: 1;
+    transform: scale(1.05); /* Lekkie powiększenie */
+    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.5);
+}
+
+/* Przycisk DELETE w Tabeli Akcji */
+.stocks-table .delete-btn {
+    padding: 6px 12px;
+    background-color: var(--color-danger);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85em;
+    opacity: 0.9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.stocks-table .delete-btn::before { /* Ikona kosza */
+    content: '🗑️'; 
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+.stocks-table .delete-btn:hover {
+    background-color: #ff5252;
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.5);
+}
+

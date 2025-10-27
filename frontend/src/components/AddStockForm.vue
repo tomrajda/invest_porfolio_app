@@ -1,6 +1,6 @@
 <template>
   <div class="stock-form-container">
-    <h3>Add share to {{ portfolioName }}</h3>
+    <h3></h3>
     <form @submit.prevent="addStock">
       <input type="text" v-model="ticker" placeholder="Share ticker (i.e. AAPL)" required />
       <input type="number" v-model="shares" placeholder="Shares amount" required min="0.01" step="0.01" />
@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, getCurrentInstance } from 'vue';
+import { defineComponent, ref, getCurrentInstance, watch } from 'vue';
 
 export default defineComponent({
   name: 'AddStockForm',
@@ -43,7 +43,7 @@ export default defineComponent({
       const token = localStorage.getItem('access_token');
       if (!token || !props.portfolioId) return;
 
-      message.value = 'Dodawanie akcji...';
+      message.value = 'Adding stock...';
 
       try {
         const response = await $api.post(`/portfolios/${props.portfolioId}/stocks`, 
@@ -71,9 +71,16 @@ export default defineComponent({
 
       } catch (error: any) {
         isSuccess.value = false;
-        message.value = `Błąd: ${error.response?.data?.msg || 'Nie udało się dodać akcji.'}`;
+        message.value = `Error: ${error.response?.data?.msg || 'The stock could not be added.'}`;
       }
     };
+
+    watch(() => props.portfolioId, (newId, oldId) => {
+      
+      if (newId !== oldId) {
+        message.value = '';
+      }
+    });
 
     return {
       ticker,

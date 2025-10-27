@@ -1,0 +1,10 @@
+MEDIUM UX/Routing	Vue Router: 
+Dodanie dedykowanych stron (np. /login, /portfolios) i przekierowanie po zalogowaniu
+
+OPT Frontend Security	
+Odświeżanie Tokenu (JWT Refresh): Implementacja odświeżania tokenu, 
+aby użytkownik nie musiał logować się co godzinę.
+
+CRITICAL Cleanup	Cofnięcie zmian w Start Command: 
+Uczynienie migracji jednorazową komendą zamiast wykonywania jej 
+przy każdym uruchomieniu serwera (co jest niepotrzebne).	

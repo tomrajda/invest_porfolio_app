@@ -13,4 +13,22 @@ const apiClient = axios.create({
   },
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // check if error is 401 and wether contains response
+    if (error.response && error.response.status === 401) {
+      console.error("The token has expired or is invalid. Logging out...");
+      
+      // 1. delete token from localStorage
+      localStorage.removeItem('access_token');
+      
+      // 2. force the page to refresh to restore the application state.
+      // Restore view AuthForm.vue
+      window.location.reload(); 
+    }
+    return Promise.reject(error); // pass the error on to the calling function
+  }
+);
+
 export default apiClient;
