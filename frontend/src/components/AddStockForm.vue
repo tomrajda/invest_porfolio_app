@@ -1,12 +1,15 @@
 <template>
   <div class="stock-form-container">
+    <div class="stock-form-container">
+    <button class="close-top-right" @click="$emit('close')">✕</button> <h2>Add stock</h2>
+    </div>
     <h3></h3>
     <form @submit.prevent="addStock">
       <input type="text" v-model="ticker" placeholder="Share ticker (i.e. AAPL)" required />
       <input type="number" v-model="shares" placeholder="Shares amount" required min="0.01" step="0.01" />
       <input type="number" v-model="purchasePrice" placeholder="Price per share" required min="0.01" step="0.01" />
       
-      <button type="submit" :disabled="!portfolioId">Add share</button>
+      <button type="submit" :disabled="!portfolioId">Submit</button>
     </form>
     
     <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">{{ message }}</p>
@@ -28,7 +31,7 @@ export default defineComponent({
         required: true
     }
   },
-  emits: ['stock-added'],
+  emits: ['stock-added', 'close'],
   setup(props, { emit }) {
     const ticker = ref('');
     const shares = ref(0);

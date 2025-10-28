@@ -1,336 +1,377 @@
-/* frontend/src/style.css - Motyw Minimalist Blue */
+/* frontend/src/style.css - Motyw NeoFinance Blue (Nowoczesny, szklany) */
 
-/* Zmienne dla spójności i łatwej zmiany koloru akcentu */
+/* ========================================================= */
+/* 1. ZMIENNE I GLOBALNE USTAWIENIA */
+/* ========================================================= */
 :root {
-    --color-primary: #1e88e5;     /* Głęboki, nowoczesny niebieski */
-    --color-secondary: #0d47a1;   /* Ciemniejszy niebieski (tło akcji) */
-    --bg-dark: #12121e;           /* Głęboki, przyjemny granat */
-    --bg-surface: #1e2133;        /* Tło kart i paneli */
-    --text-light: #f4f4f4;
-    --border-subtle: #33395c;
-    --success-color: #4CAF50;     /* Zieleń dla zysku */
-    --error-color: #ff5252;       /* Czerwień dla straty/błędu */
+    --color-primary: #3b82f6;       /* Nasycony, współczesny niebieski */
+    --color-primary-hover: #2563eb; /* Ciemniejszy wariant dla hover */
+    --color-secondary: #0f172a;     /* Głębokie tło sekcji */
+    --color-danger: #ef4444;        /* Nowoczesna czerwień */
+    --color-success: #22c55e;
+    --color-warning: #facc15;
+
+    --bg-dark: #0b0f19;             /* Ciemne tło aplikacji */
+    --bg-surface: rgba(23, 27, 45, 0.85); /* Półprzezroczysta karta (efekt szkła) */
+    --text-light: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 18px;
+
+    --transition: all 0.25s ease;
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --backdrop-blur: blur(12px);
 }
 
-/* Globalne i Typografia */
+/* ========================================================= */
+/* 2. GLOBALNE STYLE */
+/* ========================================================= */
+* {
+    box-sizing: border-box;
+    transition: var(--transition);
+}
+
 body {
     margin: 0;
     font-family: 'Inter', 'Roboto', sans-serif;
-    background-color: var(--bg-dark); 
+    background-color: var(--bg-dark);
     color: var(--text-light);
-    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
 }
-* {
-    box-sizing: border-box;
-    transition: background-color 0.2s, color 0.2s, box-shadow 0.3s;
-}
+
 #app-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 30px 20px;
+    padding: 40px 24px;
 }
-/* NAGŁÓWEK I LOGO */
+
+/* ========================================================= */
+/* 3. NAGŁÓWEK */
+/* ========================================================= */
 .app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 3px solid var(--color-primary); 
     margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    backdrop-filter: var(--backdrop-blur);
 }
 .app-header h1 {
-    font-size: 2em;
+    font-size: 1.8rem;
+    font-weight: 700;
     color: var(--text-light);
-    border-left: 5px solid var(--color-primary); /* Akcent boczny */
-    padding-left: 10px;
     margin: 0;
 }
 .logout-btn {
-    padding: 8px 18px;
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    border-radius: 4px;
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-lg);
     font-weight: 600;
+    cursor: pointer;
 }
 .logout-btn:hover {
-    background-color: #0d47a1;
-    box-shadow: 0 4px 10px rgba(30, 136, 229, 0.4);
-}
-
-/* FORMULARZE AUTORYZACJI */
-.auth-container {
-    max-width: 380px;
-    margin: 50px auto;
-    padding: 30px;
-    background-color: var(--bg-surface);
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    text-align: center;
-}
-input {
-    background-color: #2a2d40;
-    border: 1px solid var(--border-subtle);
-    border-radius: 4px;
-    color: var(--text-light);
-    padding: 10px;
-    width: 90%;
-    margin: 10px auto;
-}
-input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 5px rgba(30, 136, 229, 0.5);
-}
-button[type="submit"], .action-btn {
     background-color: var(--color-primary);
-    color: white;
-    font-weight: 600;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-button[type="submit"]:hover, .action-btn:hover {
-    background-color: #0d47a1;
+    color: #fff;
     transform: translateY(-1px);
 }
-.toggle-mode { color: var(--color-primary); cursor: pointer; text-decoration: underline; margin-top: 15px; }
-/* UKŁAD GŁÓWNY (GRID - dla wyrównania i nowoczesności) */
+
+/* ========================================================= */
+/* 4. KARTY, FORMULARZE */
+/* ========================================================= */
+.auth-container, .add-stock-area, .valuation-container, .portfolio-list-area {
+    background: var(--bg-surface);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-soft);
+    padding: 30px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-light);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.95rem;
+}
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* ========================================================= */
+/* 5. PRZYCISKI */
+/* ========================================================= */
+button, .action-btn, .add-stock-corner-btn {
+    background: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+    transition: var(--transition);
+}
+button:hover, .action-btn:hover, .add-stock-corner-btn:hover {
+    background: var(--color-primary-hover);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Czerwony wariant */
+.action-btn.close-icon, .close-icon-btn {
+    background-color: var(--color-danger);
+    color: white;
+}
+.action-btn.close-icon:hover, .close-icon-btn:hover {
+    background-color: #b91c1c;
+    transform: scale(1.05);
+}
+
+/* ========================================================= */
+/* 6. UKŁAD STRONY */
+/* ========================================================= */
 .portfolio-manager {
     display: grid;
-    grid-template-columns: 320px 1fr; 
+    grid-template-columns: 340px 1fr;
     gap: 30px;
-    align-items: start;
-    padding-top: 10px;
-}
-
-/* PANELA BOCZNY/GŁÓWNY */
-.portfolio-list-area, .valuation-container, .add-stock-area {
-    background-color: var(--bg-surface);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* ========================================================= */
-/* 4. LISTA PORTFELI */
+/* 7. LISTA PORTFELI */
 /* ========================================================= */
-.list-container ul { list-style: none; padding: 0; }
+.list-container ul { list-style: none; margin: 0; padding: 0; }
 .list-container li {
-    background-color: #2a2d40;
+    background-color: rgba(255,255,255,0.04);
     border: 1px solid var(--border-subtle);
-    margin-bottom: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 0;
-    overflow: hidden;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
 }
-.list-container li:hover {
-    background-color: #383c57;
-}
+.list-container li:hover { background-color: rgba(255,255,255,0.08); }
 .list-item-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 15px;
+    padding: 12px 15px;
 }
-/* STYL WYBRANEGO PORTFELA */
 .list-container .selected .list-item-content {
     background-color: var(--color-primary);
-    color: white;
-    font-weight: bold;
-}
-.delete-portfolio-btn {
-    padding: 4px 8px;
-    background-color: var(--error-color);
-    font-size: 0.75em;
-    border-radius: 3px;
-}
-.delete-portfolio-btn:hover {
-    background-color: #d32f2f;
-}
-
-/* ========================================================= */
-/* 5. WYCENA I TABELA AKCJI */
-/* ========================================================= */
-.valuation-container h2, .add-stock-area h2 {
-    color: var(--color-primary);
-    border-bottom: 1px dashed var(--border-subtle);
-    padding-bottom: 10px;
-    margin-top: 0;
-}
-.total-value {
-    color: var(--color-primary);
-    font-size: 1.6em;
+    color: #fff;
     font-weight: 700;
 }
+
+/* ========================================================= */
+/* 8. TABELA */
+/* ========================================================= */
 .stocks-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 8px;
-}
-.stocks-table th, .stocks-table td {
-    padding: 12px;
-    text-align: right;
-    border: none;
-    background-color: #2a2d40;
-    border-radius: 4px;
+    border-collapse: collapse;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
 }
 .stocks-table th {
-    background-color: var(--color-secondary);
+    background-color: rgba(59, 130, 246, 0.15);
     color: var(--text-light);
-    font-weight: bold;
-    text-align: left;
-}
-.stocks-table td:first-child { text-align: left; }
-
-.stocks-table tbody tr:hover td {
-    background-color: #383c57;
-}
-
-/* Kolory Zysk/Strata */
-.profit { color: var(--success-color); font-weight: 600; }
-.loss { color: var(--error-color); font-weight: 600; }
-
-
-
-
-/* frontend/src/style.css - Ostateczne Dopracowanie Tabeli i Przycisków */
-
-/* ========================================================= */
-/* (Wszystkie poprzednie sekcje: 1. Globalne, 2. Nagłówek/Formularze, 3. Układ Główny, 4. Lista Portfeli pozostają takie same) */
-/* ========================================================= */
-
-/* ========================================================= */
-/* 5. WYCENA I TABELA AKCJI (Ostateczne Dopracowanie) */
-/* ========================================================= */
-.valuation-container {
-    background-color: var(--bg-surface);
-    padding: 30px; 
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    border: 1px solid #2a2d40;
-}
-.valuation-container h2, .add-stock-area h2 {
-    color: var(--color-primary);
-    border-bottom: 1px dashed var(--border-subtle);
-    padding-bottom: 10px;
-    margin-top: 0;
-}
-.total-value {
-    color: var(--color-primary);
-    font-size: 1.8em;
-    font-weight: 700;
-    text-align: right;
-    display: block;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--border-subtle);
-}
-
-/* TABELA */
-.stocks-table {
-    width: 100%;
-    border-collapse: collapse; /* KLUCZOWA ZMIANA: Usuń separację, aby ramki były spójne */
-    margin-top: 20px;
-    background-color: #2a2d40; /* Tło dla całej tabeli */
-    border-radius: 4px; /* Zaokrąglenie całej tabeli */
-    overflow: hidden; /* Upewnij się, że zaokrąglenia są widoczne */
-}
-.stocks-table th {
-    background-color: var(--color-secondary); 
-    color: var(--text-light);
-    font-weight: bold;
-    text-align: right;
+    font-weight: 600;
     padding: 14px;
-    border-bottom: 1px solid var(--border-subtle); /* Linia pod nagłówkiem */
+    text-align: center;
 }
-.stocks-table th:first-child { text-align: left; }
-
 .stocks-table td {
-    background-color: #2a2d40; /* Tło wiersza */
-    border-bottom: 1px solid var(--border-subtle); /* Separator wierszy */
     padding: 14px;
+    border-top: 1px solid var(--border-subtle);
     text-align: right;
 }
-.stocks-table td:first-child { text-align: left; }
-.stocks-table tbody tr:last-child td {
-    border-bottom: none; /* Usuń dolną ramkę dla ostatniego wiersza */
+.stocks-table tr {
+     background-color: rgba(59, 130, 246, 0.15);
 }
+.stocks-table td:first-child, .stocks-table th:first-child { text-align: left; }
+.stocks-table tbody tr:hover td { background-color: rgba(255, 255, 255, 0.06); }
 
-/* HOVER NA CAŁY WIERSZ */
-.stocks-table tbody tr:hover td {
-    background-color: #33395c; 
-    /* Usunięcie box-shadow z komórek, aby był na poziomie wiersza jeśli trzeba */
-}
-
-/* KOLORYZACJA ZYSK/STRATA */
-.profit { 
-    color: var(--success-color); 
-    font-weight: 700; 
-    text-shadow: 0 0 4px rgba(76, 175, 80, 0.5); 
-}
-.loss { 
-    color: var(--error-color); 
-    font-weight: 700; 
-    text-shadow: 0 0 4px rgba(255, 82, 82, 0.5); 
-}
+.profit { color: var(--color-success); font-weight: 600; }
+.loss { color: var(--color-danger); font-weight: 600; }
 
 /* ========================================================= */
-/* PRZYCISKI DELETE (DOPRACOWANE) */
+/* 9. MENU KONTA */
 /* ========================================================= */
-
-/* Przycisk DELETE w Liscie Portfeli */
-.delete-portfolio-btn {
-    padding: 6px 12px; /* Większy padding */
-    background-color: var(--color-danger);
-    color: white;
-    border: none; /* Upewnij się, że nie ma ramki */
-    border-radius: 4px;
-    font-size: 0.85em;
-    opacity: 0.9;
-    position: relative; /* Dla ikony */
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.account-menu-wrapper {
+    position: relative;
 }
-.delete-portfolio-btn::before { /* Ikona kosza */
-    content: '🗑️'; /* Użycie emoji jako ikony */
-    margin-right: 5px;
-    font-size: 1.1em;
-}
-.delete-portfolio-btn:hover {
-    background-color: #ff5252; /* Jaśniejsza czerwień */
-    opacity: 1;
-    transform: scale(1.05); /* Lekkie powiększenie */
-    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.5);
-}
-
-/* Przycisk DELETE w Tabeli Akcji */
-.stocks-table .delete-btn {
-    padding: 6px 12px;
-    background-color: var(--color-danger);
+.account-btn {
+    padding: 8px 18px;
+    background: var(--color-primary);
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 0.85em;
-    opacity: 0.9;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
 }
-.stocks-table .delete-btn::before { /* Ikona kosza */
-    content: '🗑️'; 
-    margin-right: 5px;
-    font-size: 1.1em;
-}
-.stocks-table .delete-btn:hover {
-    background-color: #ff5252;
-    opacity: 1;
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.5);
+.account-btn:hover { background: var(--color-primary-hover); }
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--bg-surface);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    min-width: 220px;
+    margin-top: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    padding: 8px 0;
+    z-index: 9999;
 }
 
+.user-display {
+    padding: 10px 15px;
+    font-weight: 600;
+    color: var(--color-primary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.menu-item {
+    display: block;
+    padding: 10px 15px;
+    color: var(--text-light);
+    text-decoration: none;
+    cursor: pointer;
+}
+.menu-item:hover { background-color: rgba(255, 255, 255, 0.08); }
+.menu-item.logout { color: var(--color-danger); }
+
+/* --- 2. PRZYCISK DELETE --- */
+.delete-btn,
+.delete-portfolio-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: linear-gradient(145deg, #2b2f3f, #1e2230); /* neutralny grafit */
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: var(--transition);
+}
+
+.delete-btn:hover,
+.delete-portfolio-btn:hover {
+    background: linear-gradient(145deg, #dc2626, #b91c1c); /* lekko czerwony przy hoverze */
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+}
+.close-top-right {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: linear-gradient(145deg, #2b2f3f, #1e2230); /* ten sam neutralny grafit */
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: var(--transition);
+    z-index: 50;
+}
+
+/* Hover efekt czerwony */
+.close-top-right:hover {
+    background: linear-gradient(145deg, #dc2626, #b91c1c);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+}
+/* --- 3. TOTAL VALUE (wycena portfela) --- */
+.total-value {
+    position: relative;
+    text-align: right;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-top: 20px;
+    margin-right: 5px;
+
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    letter-spacing: 0.5px;
+}
+
+.valuation-container .total-value {
+    position: absolute;
+    top: 10px;
+    right: 25px;
+}
+
+/* ========================================================= */
+/* 10. ANIMACJE DELIKATNE */
+/* ========================================================= */
+.fade-in {
+    animation: fadeIn 0.4s ease forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================================= */
+/* TICKER LOGO I OPIS – W TABELI */
+/* ========================================================= */
+
+.ticker-cell {
+    display: flex;
+    align-items: center;
+    text-align: left !important;
+    gap: 10px;
+    padding: 6px 8px;
+}
+
+.company-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    border-radius: 50%;
+    border: 1px solid var(--border-subtle);
+    background: var(--card-bg);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.company-logo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(100, 180, 255, 0.4);
+}
+
+.ticker-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+}
+
+.ticker-info strong {
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 0.9em;
+}
+
+.company-name {
+    font-size: 0.75em;
+    color: var(--text-muted, #8b8b8b);
+    margin-top: 2px;
+}

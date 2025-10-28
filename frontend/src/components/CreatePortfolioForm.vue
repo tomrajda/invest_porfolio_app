@@ -1,9 +1,12 @@
 <template>
   <div class="portfolio-form-container">
-    <h3>Create new portfolio</h3>
+    <div class="portfolio-form-container">
+      <button class="close-top-right" @click="$emit('close')">✕</button>
+    </div>
+    <h3>Add portfolio</h3>
     <form @submit.prevent="createPortfolio">
       <input type="text" v-model="portfolioName" placeholder="Nazwa portfela" required />
-      <button type="submit" :disabled="!authToken">Create</button>
+      <button type="submit" :disabled="!authToken">Submit</button>
     </form>
     
     <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">{{ message }}</p>
@@ -19,7 +22,7 @@ import { defineComponent, ref, getCurrentInstance, onMounted } from 'vue'
 
 export default defineComponent({
   name: 'CreatePortfolioForm',
-  emits: ['portfolio-created'],
+  emits: ['portfolio-created', 'close'],
   setup(_, { emit }) {
     const portfolioName = ref('')
     const message = ref('')

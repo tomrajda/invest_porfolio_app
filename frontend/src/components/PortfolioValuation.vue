@@ -1,10 +1,20 @@
 <template>
   <div class="valuation-container">
-    <div v-if="loading" class="info-message">Loading portfolio valuation...</div>
+    <div v-if="loading" class="info-message">loading...</div>
     <div v-else-if="error" class="info-message error">{{ error }}</div>
     
     <div v-else-if="valuationData">
-      <h2>Valuation</h2>
+      <div v-if="isAddFormVisible==false" > 
+        <button 
+          @click="handleToggle" 
+          class="add-stock-corner-btn"
+          :class="{'close-icon-btn': isAddFormVisible}">
+          +
+        </button>
+      </div>
+
+      
+      <h2></h2>
       
     <div class="total-value-container">
       <span class="total-value">{{ formatCurrency(valuationData.total_market_value) }}</span>
@@ -24,7 +34,13 @@
         </thead>
         <tbody>
           <tr v-for="stock in valuationData.stocks" :key="stock.id">
-            <td>{{ stock.ticker }}</td>
+            <td class="ticker-cell">
+              <img v-if="stock.logo_url" :src="stock.logo_url" :alt="stock.ticker" class="company-logo" />
+              <div class="ticker-info">
+                <strong>{{ stock.ticker }}</strong>
+                <span class="company-name">{{ stock.company_name }}</span>
+              </div>
+            </td>
             <td>{{ stock.shares }}</td>
             <td>{{ formatCurrency(stock.purchase_price) }}</td>
             <td>{{ formatCurrency(stock.current_price) }}</td>
@@ -53,6 +69,8 @@ interface StockValuation {
   current_price: number | null
   market_value: number
   profit_loss: number
+  logo_url: string
+  company_name: string
 }
 
 interface PortfolioValuation {
@@ -64,12 +82,11 @@ interface PortfolioValuation {
 export default defineComponent({
   name: 'PortfolioValuation',
   props: {
-    portfolioId: { // active portfolio
-      type: Number,
-      required: true,
-    }
+    portfolioId: { type: Number, required: true },
+    isAddFormVisible: { type: Boolean, default: false }
   },
-  setup(props) {
+  emits: ['toggle-add-stock'],
+  setup(props, { emit }) {
     const valuationData = ref<PortfolioValuation | null>(null)
     const loading = ref(false)
     const error = ref('')
@@ -127,7 +144,9 @@ export default defineComponent({
         alert(e.response?.data?.msg || 'The share could not be deleted.');
       }
     };
-
+    const handleToggle = () => {
+        emit('toggle-add-stock')
+    }
     // use WATCH, aby reagować na zmianę prop-sa (zmianę aktywnego portfela)
     watch(() => props.portfolioId, (newId) => {
       if (newId) {
@@ -140,7 +159,8 @@ export default defineComponent({
       loading,
       error,
       formatCurrency,
-      deleteStock
+      deleteStock,
+      handleToggle
     };
   },
 });

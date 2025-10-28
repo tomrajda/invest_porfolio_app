@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app import db, bcrypt, jwt
 from app.models import User, Portfolio, Stock
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from .services.finnhub_service import get_current_price
+from .services.finnhub_service import get_current_price, get_company_metadata
 
 # create Blueprint for API
 api = Blueprint('api', __name__)
@@ -178,12 +178,22 @@ def get_full_portfolio_valuation(portfolio_id):
 
     total_market_value = 0.0
     stocks_with_valuation = []
+    # Create dictionary to not load many times
+    # (aby nie pytac API wielokrotnie o ten sam ticker)
+    ticker_metadata_cache = {}
 
     stocks = Stock.query.filter_by(portfolio_id=portfolio.id).all()
 
     for stock in stocks:
-        # 2. get current price from external API Finnhub
-        current_price = get_current_price(stock.ticker) 
+        ticker = stock.ticker
+        
+        # check if metadata is laredy in cachce
+        if ticker not in ticker_metadata_cache:
+             ticker_metadata_cache[ticker] = get_company_metadata(ticker)
+             
+        metadata = ticker_metadata_cache[ticker] or {}
+
+        current_price = get_current_price(ticker)
         
         market_value = 0.0
         profit_loss = 0.0
@@ -201,7 +211,9 @@ def get_full_portfolio_valuation(portfolio_id):
             "purchase_price": str(stock.purchase_price),
             "current_price": current_price,
             "market_value": round(market_value, 2),
-            "profit_loss": round(profit_loss, 2)
+            "profit_loss": round(profit_loss, 2),
+            "logo_url": metadata.get('logo'),
+            "company_name": metadata.get('name'),
         })
 
     return jsonify({

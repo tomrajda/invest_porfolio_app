@@ -1,6 +1,6 @@
 <template>
   <div class="list-container">
-    <h3>Investment Portfolios</h3>
+    
     <div v-if="loading" class="info-message">Loading portfolios...</div>
     <div v-else-if="portfolios.length === 0" class="info-message error">
       You don't have any portfolios yet. Create one!
