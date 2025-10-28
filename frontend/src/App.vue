@@ -2,7 +2,10 @@
   <div id="app-container">
     
     <header class="app-header">
-        <h1>📊 portfolio tracker</h1>
+        <h1>
+          <img src="/portseido_logo_no_text.svg" alt="Logo Portfela" class="app-logo">
+          portfolio tracker
+        </h1>
         
         <div v-if="isAuthenticated" class="account-menu-wrapper" @mouseleave="isMenuOpen = false">
             <button @click="isMenuOpen = !isMenuOpen" class="account-btn" @mouseover="isMenuOpen = true">

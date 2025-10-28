@@ -375,3 +375,19 @@ button:hover, .action-btn:hover, .add-stock-corner-btn:hover {
     color: var(--text-muted, #8b8b8b);
     margin-top: 2px;
 }
+
+
+.app-header h1 {
+    display: flex; /* KLUCZOWE: Użycie Flexbox do wyrównania obrazka i tekstu */
+    align-items: center;
+    font-size: 2em;
+    /* ... reszta stylów h1 ... */
+}
+
+.app-logo {
+    width: 35px; /* Ustawienie rozmiaru logo */
+    height: 35px;
+    margin-right: 10px;
+    border-radius: 50%; /* Opcjonalnie: jeśli chcesz okrągłe logo */
+    object-fit: cover;
+}
