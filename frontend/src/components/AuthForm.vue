@@ -1,16 +1,16 @@
 <template>
   <div class="auth-container">
-    <h2>{{ isLogin ? 'Logowanie' : 'Rejestracja' }}</h2>
-    
-    <form @submit.prevent="handleSubmit">
-      <input type="text" v-model="username" placeholder="Nazwa użytkownika" required />
-      <input type="password" v-model="password" placeholder="Hasło" required />
+    <h2>{{ isLogin ? 'Login' : 'Register' }}</h2>
+
+    <form @submit.prevent="handleSubmit" class="login-form">
+      <input type="text" v-model="username" placeholder="Username" required class="login-input"/>
+      <input type="password" v-model="password" placeholder="Passwod" required class="login-input"/>
       
-      <button type="submit">{{ isLogin ? 'Zaloguj' : 'Zarejestruj' }}</button>
+      <button type="submit" class="login-submit-btn">{{ isLogin ? 'Log in' : 'Register' }}</button>
     </form>
-    
+
     <p @click="isLogin = !isLogin" class="toggle-mode">
-      {{ isLogin ? 'Nie masz konta? Zarejestruj się.' : 'Masz już konto? Zaloguj się.' }}
+      {{ isLogin ? 'Dont have an account? Sign up.' : 'Already have an account? Log in.' }}
     </p>
 
     <div v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">

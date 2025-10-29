@@ -5,7 +5,7 @@
     </div>
     <h3>Add portfolio</h3>
     <form @submit.prevent="createPortfolio">
-      <input type="text" v-model="portfolioName" placeholder="Nazwa portfela" required />
+      <input type="text" v-model="portfolioName" placeholder="Portfolio name" required />
       <button type="submit" :disabled="!authToken">Submit</button>
     </form>
     

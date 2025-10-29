@@ -10,8 +10,8 @@ Uczynienie migracji jednorazową komendą zamiast wykonywania jej
 przy każdym uruchomieniu serwera (co jest niepotrzebne).	
 
 -logo
--zdjecia logo tickerow firm
+
 -przyciski ui przyjemnijeszy
 
--przycisk refesh data API finance obok +
+
 -lista do podpowiadania tickerow

@@ -1,15 +1,21 @@
 <template>
   <div class="valuation-container">
-    <div v-if="loading" class="info-message">loading...</div>
+    <div v-if="loading" class="info-message">Loading...</div>
     <div v-else-if="error" class="info-message error">{{ error }}</div>
     
     <div v-else-if="valuationData">
-      <div v-if="isAddFormVisible==false" > 
+      <div v-if="isAddFormVisible==false" class="action-buttons-container"> 
         <button 
           @click="handleToggle" 
           class="add-stock-corner-btn"
           :class="{'close-icon-btn': isAddFormVisible}">
-          +
+          <img src="/add-symbol.svg" alt="Refresh" class="refresh-icon" />
+        </button>
+        <button @click="handleRefreshValuation" class="refresh-btn" :disabled="loading">
+          <span v-if="loading">Loading...</span>
+          <span v-else>
+            <img src="/icons8-refresh.svg" alt="Refresh" class="refresh-icon" />
+          </span>
         </button>
       </div>
 
@@ -147,6 +153,13 @@ export default defineComponent({
     const handleToggle = () => {
         emit('toggle-add-stock')
     }
+    
+    const handleRefreshValuation = () => {
+      if (props.portfolioId) {
+        fetchValuation(props.portfolioId)
+      }
+    };
+    
     // use WATCH, aby reagować na zmianę prop-sa (zmianę aktywnego portfela)
     watch(() => props.portfolioId, (newId) => {
       if (newId) {
@@ -160,7 +173,8 @@ export default defineComponent({
       error,
       formatCurrency,
       deleteStock,
-      handleToggle
+      handleToggle,
+      handleRefreshValuation
     };
   },
 });

@@ -13,7 +13,7 @@
         @click="$emit('select-portfolio', portfolio.id, portfolio.name)"
       >
         <div class="list-item-content"> <span class="portfolio-name">
-              {{ portfolio.name }} (ID: {{ portfolio.id }})
+              {{ portfolio.name }}
           </span>
             
           <button 

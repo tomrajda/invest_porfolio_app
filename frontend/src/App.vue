@@ -6,20 +6,22 @@
           <img src="/portseido_logo_no_text.svg" alt="Logo Portfela" class="app-logo">
           portfolio tracker
         </h1>
-        
-        <div v-if="isAuthenticated" class="account-menu-wrapper" @mouseleave="isMenuOpen = false">
-            <button @click="isMenuOpen = !isMenuOpen" class="account-btn" @mouseover="isMenuOpen = true">
-                Account ▿
-            </button>
-            
-            <div v-if="isMenuOpen" class="dropdown-menu">
-                <div class="user-display">{{ userName }}</div>
-                <div class="menu-divider"></div>
-                <a href="#" class="menu-item" @click.prevent="isMenuOpen = false">Profile (Mock)</a>
-                <a href="#" class="menu-item logout" @click.prevent="handleLogout">Sign out</a>
-            </div>
+        <div v-if="isAuthenticated" class="account-menu-wrapper">
+          <button 
+            @click="isMenuOpen = !isMenuOpen" 
+            class="account-btn"
+            :class="{ 'active': isMenuOpen }"
+          >
+            Account
+            <span class="arrow" :class="{ 'open': isMenuOpen }">▿</span>
+          </button>
+          <div v-if="isMenuOpen" class="dropdown-menu">
+            <div class="user-display">{{ userName }}</div>
+            <div class="menu-divider"></div>
+            <a href="#" class="menu-item" @click.prevent="isMenuOpen = false">Profile</a>
+            <a href="#" class="menu-item logout" @click.prevent="handleLogout">Sign out</a>
+          </div>
         </div>
-        
         <AuthForm v-else @login-success="handleLoginSuccess" /> 
     </header>
 
@@ -33,7 +35,7 @@
                 class="action-btn" 
                 style="margin-bottom: 15px;"
             >
-              +
+              <img src="/add-symbol.svg" alt="Refresh" class="refresh-icon" />
             </button>
           </div>
 
@@ -77,7 +79,7 @@
 
     </div>
     <div v-else class="info-message">
-        Proszę się zalogować, aby uzyskać dostęp do panelu inwestycyjnego.
+        tomek
     </div>
 
   </div>
@@ -134,7 +136,7 @@ export default defineComponent({
 
                 } catch (e) {
                     console.error("Błąd dekodowania tokenu:", e);
-                    userName.value = 'Gość';
+                    userName.value = 'Guest';
                 }
             }
             portfolioListKey.value++;
