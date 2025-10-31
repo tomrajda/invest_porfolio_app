@@ -31,5 +31,19 @@ services:
     depends_on:
       - postgres_local
 
+#  frontend:
+#      # Lokalizacja, z której ma budować (katalog 'frontend')
+#      build:
+#        context: ./frontend 
+#      # Mapowanie portu: 8080 na hoście Arch => 8080 w kontenerze (typowe dla Vue)
+#      ports:
+#        - "8080:8080"
+#      # Mapowanie wolumenu, aby umożliwić Hot Reloading (zmiany kodu widoczne natychmiast)
+#      volumes:
+#        - ./frontend:/app
+#      # Pamiętaj, aby serwis backendowy był dostępny dla frontendu
+#     depends_on:
+#        - web
+
 volumes:
   db_data:
