@@ -41,7 +41,7 @@
         <tbody>
           <tr v-for="stock in valuationData.stocks" :key="stock.id">
             <td class="ticker-cell">
-              <img v-if="stock.logo_url" :src="stock.logo_url" :alt="stock.ticker" class="company-logo" />
+              <img v-if="stock.logo_url" :src="stock.logo_url" :alt="stock.ticker" class="company-logo" loading="lazy"/>
               <div class="ticker-info">
                 <strong>{{ stock.ticker }}</strong>
                 <span class="company-name">{{ stock.company_name }}</span>

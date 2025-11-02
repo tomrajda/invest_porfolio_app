@@ -1,5 +1,6 @@
 import os
 import requests
+from .cache_service import get_cache, set_cache
 
 FINNHUB_URL = "https://finnhub.io/api/v1"
 API_KEY = os.environ.get('FINNHUB_API_KEY')
@@ -37,8 +38,17 @@ def get_company_metadata(ticker: str) -> dict | None:
     """ 
     Get company metadata from Finnhub API, including logo URL
     """
+    CACHE_KEY = f"logo:{ticker}"
+    
+    # 1. Check CACHE
+    cached_data = get_cache(CACHE_KEY)
+    if cached_data:
+        # Return logo from catche
+        logo_url = cached_data.decode('utf-8')
+        return {"logo": logo_url}
+
     if not API_KEY:
-        print("BŁĄD: FINNHUB_API_KEY nie jest ustawiony.")
+        print("BŁĄD: FINNHUB_API_KEY not set.")
         return None
 
     url = f"{FINNHUB_URL}/stock/profile2?symbol={ticker}&token={API_KEY}"
@@ -48,10 +58,17 @@ def get_company_metadata(ticker: str) -> dict | None:
         response.raise_for_status()
 
         data = response.json()
-        
+           
+        name = data.get('name')
+        logo_url = data.get('logo')
+
+        if logo_url:
+            # CACHE save
+            set_cache(CACHE_KEY, logo_url)
+
         return {
-            "name": data.get('name'),
-            "logo": data.get('logo') # <-- URL Logo
+            "name": name,
+            "logo": logo_url
         }
 
     except requests.exceptions.RequestException as e:

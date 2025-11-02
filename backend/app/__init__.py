@@ -22,6 +22,7 @@ def create_app(config_name=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
+    app.config['REDIS_URL'] = os.environ.get('REDIS_URL')
 
     # configure CORS (allow front-end Vue for communication)
     CORS(app, resources={r"/api/*": {"origins": "*"}}) 
