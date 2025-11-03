@@ -3,6 +3,14 @@ from app import db, bcrypt, jwt
 from app.models import User, Portfolio, Stock
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from .services.finnhub_service import get_current_price, get_company_metadata
+from prometheus_client import Counter
+
+# metrics for tracking failed login attempts
+LOGIN_FAILURES = Counter(
+    'app_login_failures_total', 
+    'Failed login attempts number',
+    ['reason']
+)
 
 # create Blueprint for API
 api = Blueprint('api', __name__)
@@ -49,6 +57,11 @@ def login():
         access_token = create_access_token(identity=str(user.id))
         return jsonify(access_token=access_token), 200
     else:
+        if not user:
+            LOGIN_FAILURES.labels(reason='user_not_found').inc()
+        else:
+            LOGIN_FAILURES.labels(reason='invalid_password').inc()
+        
         return jsonify({"msg": "Bad username or password"}), 401
 
 # -----------------------------------------------------------

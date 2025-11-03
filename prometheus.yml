@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s # frequency of data collection
+
+scrape_configs:
+  - job_name: 'flask-app' # data source name
+    static_configs:
+      - targets: ['web:5000'] # container 'web' (Flask) port 5000.
+    metrics_path: '/metrics' # default endpoint, set by Flask.

@@ -37,6 +37,31 @@ services:
       - postgres_local
       - cache
 
+  # efficiency metrics (prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090" # interface port for Prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro # configuration file
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - web
+
+  # visualization (grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000" # interface port for Grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
 #  frontend:
 #      # Lokalizacja, z której ma budować (katalog 'frontend')
 #      build:

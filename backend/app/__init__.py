@@ -5,6 +5,8 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from prometheus_client import make_wsgi_app
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 # init extensions (bez przypisania do aplikacji)
 db = SQLAlchemy()
@@ -36,9 +38,16 @@ def create_app(config_name=None):
     jwt.init_app(app)
 
     # -----------------------------------------------------------
-    # 3. register Blueprints (endpointów)
+    # 3. register Blueprints (endpointow)
     # -----------------------------------------------------------
     from .routes import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
     
+    # ----------------------------------------------------
+    # 4. configuration PROMETHEUS
+    # ----------------------------------------------------
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+        '/metrics': make_wsgi_app()
+    })
+
     return app
