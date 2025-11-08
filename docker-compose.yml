@@ -1,5 +1,6 @@
 
 services:
+  
   # db service
   postgres_local:
     image: postgres:14-alpine
@@ -11,11 +12,13 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  
   # cache
   cache:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+  
   # bcknd (flask) serwis  
   web:
     build:
@@ -37,6 +40,17 @@ services:
       - postgres_local
       - cache
 
+  # notifications broker
+  notification-broker: 
+    build:
+      context: ./notification-broker
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001" 
+    environment:
+      PYTHONUNBUFFERED: 1
+    restart: always
+    
   # efficiency metrics (prometheus)
   prometheus:
     image: prom/prometheus:latest

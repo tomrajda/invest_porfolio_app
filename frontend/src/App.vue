@@ -1,4 +1,7 @@
 <template>
+  
+  
+
   <div id="app-container">
     
     <header class="app-header">
@@ -24,7 +27,7 @@
         </div>
         <AuthForm v-else @login-success="handleLoginSuccess" /> 
     </header>
-
+    <WebSocketClient v-if="isAuthenticated" />
     <div v-if="isAuthenticated" class="portfolio-manager">
       
         <div class="portfolio-list-area">
@@ -93,6 +96,7 @@ import CreatePortfolioForm from './components/CreatePortfolioForm.vue'
 import PortfolioList from './components/PortfolioList.vue'
 import AddStockForm from './components/AddStockForm.vue'
 import PortfolioValuation from './components/PortfolioValuation.vue'
+import WebSocketClient from './components/WebSocketClient.vue'
 
 export default defineComponent({
   name: 'App',
@@ -101,7 +105,8 @@ export default defineComponent({
     CreatePortfolioForm,
     PortfolioList,
     AddStockForm,
-    PortfolioValuation
+    PortfolioValuation,
+    WebSocketClient
   },
   setup() {
     const isAuthenticated = ref(false)

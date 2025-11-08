@@ -1,9 +1,13 @@
 from flask import Blueprint, request, jsonify
-from app import db, bcrypt, jwt
-from app.models import User, Portfolio, Stock
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+
+from app import db, bcrypt
+from app.models import User, Portfolio, Stock
+from app.notifications.client import send_notification
 from .services.finnhub_service import get_current_price, get_company_metadata
+
 from prometheus_client import Counter
+import logging
 
 # metrics for tracking failed login attempts
 LOGIN_FAILURES = Counter(
@@ -14,6 +18,8 @@ LOGIN_FAILURES = Counter(
 
 # create Blueprint for API
 api = Blueprint('api', __name__)
+
+logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------
 # endpoint: register new user
@@ -166,8 +172,27 @@ def add_stock_to_portfolio(portfolio_id):
     db.session.add(new_stock)
     db.session.commit()
 
+    message = f"Stock {ticker} added to portfolio {portfolio.name} successfully.",
+    
+    # raise Exception("TESTING CRASH POINT - DID FLASK EXECUTE THIS CODE?")
+
+    try:
+        user_id = get_jwt_identity() # Zwróci ID użytkownika
+        notification_message = { 
+            'type': 'STOCK_ADDED', 
+            'content': message 
+        }
+        
+        # WYSŁANIE: Wywołanie klienta WebSockets
+        send_notification(user_id, notification_message) 
+        
+        logger.warning(f"Notification PUSH CALLED for user {user_id}. Ticker: {ticker}") 
+        
+    except Exception as e:
+        logger.error(f"FATAL: Notification Call Failed: {e}")
+
     return jsonify({
-        "msg": f"Stock {ticker} added to portfolio {portfolio.name} successfully.",
+        "msg": message,
         "stock_id": new_stock.id,
         "ticker": new_stock.ticker
     }), 201
