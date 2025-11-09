@@ -56,6 +56,7 @@ async def producer_handler(websocket, path):
     Obsługuje wiadomości przychodzące od serwisu Flask (Klienta).
     Serwis Flask łączy się, wysyła wiadomość i zamyka.
     """
+    logger.info(f"FLASK CONNECTION RECEIVED on {path}.")
     try:
         # Nasłuchujemy wiadomości z serwisu Flask
         message_from_flask = await websocket.recv()
@@ -89,26 +90,26 @@ async def producer_handler(websocket, path):
         logger.error(f"Error handling Flask client message: {e}")
 
 
-async def router_handler(websocket, *args, **kwargs):
+async def router_handler(websocket, path):
     """
     Kieruje połączenia do odpowiedniego handlera na podstawie ścieżki URL.
     """
     
-    path = '/'
-    
-    try:
-        if len(args) > 0:
-            path = args[0] # To jest najbardziej prawdopodobne miejsce, gdzie jest ścieżka
-        elif 'path' in kwargs and kwargs['path'] is not None:
-            path = kwargs['path']
+    # path = '/'
+    logger.info(f"FLASK 1.1 TEST")
+    #try:
+    #    if len(args) > 0:
+    #        path = args[0] # To jest najbardziej prawdopodobne miejsce, gdzie jest ścieżka
+    #    elif 'path' in kwargs and kwargs['path'] is not None:
+    #        path = kwargs['path']
             
-    except Exception as e:
-        logger.error(f"Failed to determine path: {e}")
+    # except Exception as e:
+    #    logger.error(f"Failed to determine path: {e}")
         # W przypadku błędu path pozostaje '/'
         
     # KLUCZOWA POPRAWKA LOGICZNA: Jeśli path jest 'None' (co się dzieje), traktujemy to jako '/'.
-    if path is None:
-        path = '/' 
+    #if path is None:
+    #    path = '/' 
 
     logger.info(f"Incoming connection on path: {path}")
 
@@ -126,12 +127,13 @@ async def router_handler(websocket, *args, **kwargs):
 
 async def main():
     """Główna funkcja uruchamiająca JEDEN serwer WebSocket."""
+    
     # Uruchamiamy tylko JEDEN serwer i używamy router_handler do rozróżniania ścieżek
     server = websockets.serve(router_handler, "0.0.0.0", 8001)
-    
+
     await server
     await asyncio.Future() # Trzyma serwer uruchomiony na zawsze
-    
+
 if __name__ == "__main__":
     logger.info("Starting Notification Broker on port 8001...")
     asyncio.run(main())

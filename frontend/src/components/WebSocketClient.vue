@@ -1,6 +1,6 @@
 <template>
     <div v-if="notification" class="live-notification" @click="clearNotification">
-        🔔 POWIADOMIENIE: {{ notification }}
+        🔔 {{ Array.isArray(notification) ? notification[0] : notification }}
     </div>
 </template>
 
@@ -15,50 +15,52 @@ export default defineComponent({
         const notification = ref<string | null>(null);
         const userId = ref<string | null>(null);
         
-        // Adres Brokera (dostępny dla front-endu)
-        const WS_URL = 'ws://localhost:8001/'; 
+        // Broker address 
+        const WS_URL = 'ws://localhost:8001'; 
         
         const connectWebSocket = () => {
             const token = localStorage.getItem('access_token');
             if (!token) {
-                // Jeśli brak tokenu, nie łączymy się
                 return;
             }
 
             try {
-                const decodedToken: { sub: string } = jwtDecode(token);
-                userId.value = decodedToken.sub; // Pobierz ID użytkownika
+                const decodedToken: { sub: string } = jwtDecode(token)
+                userId.value = decodedToken.sub
                 
-                // 1. Otwarcie połączenia
+                // Open connection
                 socket.value = new WebSocket(WS_URL);
 
                 socket.value.onopen = () => {
-                    console.log('WebSocket: Połączono z Brokerem!');
+                    console.log('WebSocket: Connected with Broker!')
                     
-                    // 2. Rejestracja użytkownika (WYMAGANA PRZEZ BROKERA)
                     socket.value?.send(JSON.stringify({
                         user_id: userId.value,
                         type: 'REGISTER'
-                    }));
-                };
+                    }))
+                }
 
                 socket.value.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
+                    const data = JSON.parse(event.data)
                     
-                    if (data.type === 'STOCK_ADDED') {
-                        // Odbieranie powiadomienia od Brokera
+                    if (
+                        data.type === 'STOCK_ADDED' || 
+                        data.type === 'STOCK_DELETED' || 
+                        data.type === 'PORTFOLIO_ADDED' ||
+                        data.type == 'PORTFOLIO_DELETED'
+                    ) {
+                        // notifcation from Broker
                         notification.value = data.content; 
                     }
-                    console.log('Odebrano wiadomość z WebSockets:', data);
+                    console.log('Message received from WebSockets:', data);
                 };
 
                 socket.value.onclose = (event) => {
-                    console.log('WebSocket: Rozłączono.', event.code, event.reason);
-                    // Opcjonalnie: automatyczne ponawianie połączenia
+                    console.log('WebSocket: Disconnected.', event.code, event.reason);
                 };
 
             } catch (e) {
-                console.error("WebSocket: Nie udało się połączyć/dekodować tokenu.", e);
+                console.error("WebSocket: Cannot connect/decode token", e);
             }
         };
 
@@ -73,13 +75,9 @@ export default defineComponent({
             notification.value = null;
         };
 
-        // Łączenie przy montowaniu
-        onMounted(connectWebSocket);
+        onMounted(connectWebSocket)
+        onUnmounted(disconnectWebSocket)
         
-        // Rozłączanie przy demontowaniu komponentu (np. przy wylogowaniu)
-        onUnmounted(disconnectWebSocket); 
-        
-        // Ponowne łączenie, jeśli token się zmienił/pojawił
         watch(() => localStorage.getItem('access_token'), (newToken) => {
             if (newToken && !socket.value) {
                 connectWebSocket();

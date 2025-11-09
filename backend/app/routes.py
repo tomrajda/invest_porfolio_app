@@ -100,6 +100,16 @@ def create_portfolio():
     db.session.add(new_portfolio)
     db.session.commit()
     
+
+    message = f"Portfolio {name} created successfully."
+
+    user_id = get_jwt_identity()
+    notification_message = { 
+        'type': 'PORTFOLIO_ADDED', 
+        'content': message 
+    }
+    send_notification(user_id, notification_message) 
+
     # 5. success response
     return jsonify({
         "msg": "Portfolio created successfully",
@@ -173,24 +183,14 @@ def add_stock_to_portfolio(portfolio_id):
     db.session.commit()
 
     message = f"Stock {ticker} added to portfolio {portfolio.name} successfully.",
-    
-    # raise Exception("TESTING CRASH POINT - DID FLASK EXECUTE THIS CODE?")
 
-    try:
-        user_id = get_jwt_identity() # Zwróci ID użytkownika
-        notification_message = { 
-            'type': 'STOCK_ADDED', 
-            'content': message 
-        }
+    user_id = get_jwt_identity()
+    notification_message = { 
+        'type': 'STOCK_ADDED', 
+        'content': message 
+    }
+    send_notification(user_id, notification_message) 
         
-        # WYSŁANIE: Wywołanie klienta WebSockets
-        send_notification(user_id, notification_message) 
-        
-        logger.warning(f"Notification PUSH CALLED for user {user_id}. Ticker: {ticker}") 
-        
-    except Exception as e:
-        logger.error(f"FATAL: Notification Call Failed: {e}")
-
     return jsonify({
         "msg": message,
         "stock_id": new_stock.id,
@@ -287,6 +287,15 @@ def delete_stock_from_portfolio(portfolio_id, stock_id):
     db.session.delete(stock)
     db.session.commit()
 
+    message = f"Stock deleted from portfolio {portfolio.name} successfully."
+
+    user_id = get_jwt_identity()
+    notification_message = { 
+        'type': 'STOCK_DELETED', 
+        'content': message 
+    }
+    send_notification(user_id, notification_message) 
+
     return jsonify({"msg": f"Stock {stock.ticker} (ID: {stock_id}) successfully removed."}), 200
 
 @api.route('/portfolios/<int:portfolio_id>', methods=['DELETE'])
@@ -311,6 +320,15 @@ def delete_portfolio(portfolio_id):
         # will be deleted thanks to model)
         db.session.delete(portfolio)
         db.session.commit()
+
+        message = f"Portfolio {portfolio.name} deleted successfully."
+
+        user_id = get_jwt_identity()
+        notification_message = { 
+            'type': 'PORTFOLIO_DELETED', 
+            'content': message 
+        }
+        send_notification(user_id, notification_message) 
 
         return jsonify({"msg": f"Portfolio '{portfolio_name}' and all associated stocks have been permanently deleted."}), 200
 

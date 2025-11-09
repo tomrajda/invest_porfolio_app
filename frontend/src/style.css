@@ -729,3 +729,9 @@ button[type="submit"]:disabled {
     z-index: 9999;
     font-weight: bold;
 }
+
+.live-notification:hover {
+    background-color: var(--color-secondary);
+    transform: translateY(-2px) scale(1.01); 
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6); 
+}
