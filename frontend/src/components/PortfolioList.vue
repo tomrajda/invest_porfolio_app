@@ -72,7 +72,7 @@ export default defineComponent({
       }
     }
     
-    const deletePortfolio = async (portfolioId: number, portfolioName: string) => {
+    const deletePortfolio = async (portfolioId: number) => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
@@ -84,21 +84,21 @@ export default defineComponent({
             })
 
             // send event to parent
-            emit('portfolio-deleted'); 
+            emit('portfolio-deleted')
                 
             // alert(`Portfel '${portfolioName}' usunięty pomyślnie.`);
 
         } catch (error: any) {
                 alert(error.response?.data?.msg || 'Error: Failed to delete wallet.')
             }
-        };
+        }
 
     const confirmDelete = (id: number, name: string) => {
         if (confirm(
           `Are you sure you want to delete your wallet '${name}'?\n\nAll related stocks will be deleted!`)) {
-                deletePortfolio(id, name);
+                deletePortfolio(id)
             }
-    };
+    }
 
     onMounted(fetchPortfolios)
 
