@@ -86,17 +86,16 @@ export default defineComponent({
             // send event to parent
             emit('portfolio-deleted'); 
                 
-            alert(`Portfel '${portfolioName}' usunięty pomyślnie.`);
+            // alert(`Portfel '${portfolioName}' usunięty pomyślnie.`);
 
         } catch (error: any) {
-                alert(error.response?.data?.msg || 'Błąd: Nie udało się usunąć portfela.');
+                alert(error.response?.data?.msg || 'Error: Failed to delete wallet.')
             }
         };
 
     const confirmDelete = (id: number, name: string) => {
         if (confirm(
-          `Czy na pewno chcesz usunąć portfel '${name}'? 
-        Zostaną usunięte wszystkie powiązane akcje!`)) {
+          `Are you sure you want to delete your wallet '${name}'?\n\nAll related stocks will be deleted!`)) {
                 deletePortfolio(id, name);
             }
     };

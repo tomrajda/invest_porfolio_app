@@ -77,7 +77,7 @@
         </div>
         
         <div v-else class="info-message" style="grid-column: 1 / -1; text-align: center;">
-            Wybierz portfel z listy lub utwórz nowy, aby wyświetlić szczegóły i akcje.
+            Select a portfolio from the list or create a new one to view details and actions.
         </div>
 
     </div>
