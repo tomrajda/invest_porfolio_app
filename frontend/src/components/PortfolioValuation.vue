@@ -47,7 +47,7 @@
                 <span class="company-name">{{ stock.company_name }}</span>
               </div>
             </td>
-            <td>{{ stock.shares }}</td>
+            <td>{{ parseFloat(stock.shares).toFixed(2)}}</td>
             <td>{{ formatCurrency(stock.purchase_price) }}</td>
             <td>{{ formatCurrency(stock.current_price) }}</td>
             <td>{{ formatCurrency(stock.market_value) }}</td>
@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, getCurrentInstance } from 'vue'
+import { defineComponent, ref, watch, getCurrentInstance, onMounted, onUnmounted } from 'vue'
 
 interface StockValuation {
   id: number
@@ -104,8 +104,7 @@ export default defineComponent({
         if (value === null) return 'N/A'
         const num = typeof value === 'string' ? parseFloat(value) : value
         return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'USD' }).format(num)
-    };
-
+    }
     const fetchValuation = async (id: number) => {
       const token = localStorage.getItem('access_token')
       if (!token) return;
@@ -127,7 +126,6 @@ export default defineComponent({
         loading.value = false
       }
     }
-    
     const deleteStock = async (stockId: number) => {
       if (!confirm(`Are you sure you want to delete action ID: ${stockId}?`)) {
         return;
@@ -149,23 +147,55 @@ export default defineComponent({
       } catch (e: any) {
         alert(e.response?.data?.msg || 'The share could not be deleted.');
       }
-    };
+    }
     const handleToggle = () => {
         emit('toggle-add-stock')
     }
-    
     const handleRefreshValuation = () => {
       if (props.portfolioId) {
         fetchValuation(props.portfolioId)
       }
-    };
+    }
+    const updateTablePrice = (event: CustomEvent) => {
+        const update = event.detail;
+
+        if (!valuationData.value) {
+            return
+        }
+
+        const stockIndex = valuationData.value.stocks.findIndex(s => s.ticker === update.ticker);
+        
+        if (stockIndex > -1) {
+            
+            const stock = valuationData.value.stocks[stockIndex];
+            
+            if (stock) { 
+
+                stock.current_price = update.price;
+                
+                const shares = parseFloat(stock.shares);
+                const purchasePrice = parseFloat(stock.purchase_price);
+                
+                stock.market_value = update.price * shares;
+                stock.profit_loss = (stock.market_value - (purchasePrice * shares));
+            }
+        }
+    }
     
-    // use WATCH, aby reagować na zmianę prop-sa (zmianę aktywnego portfela)
     watch(() => props.portfolioId, (newId) => {
       if (newId) {
-        fetchValuation(newId);
+        fetchValuation(newId)
       }
-    }, { immediate: true }); // immediate: true oznacza, że wywoła się od razu przy montowaniu
+    }, { immediate: true })
+
+    onMounted(() => {
+            window.addEventListener('priceUpdated', updateTablePrice as EventListener);
+            fetchValuation(props.portfolioId);
+    })
+
+    onUnmounted(() => {
+            window.removeEventListener('priceUpdated', updateTablePrice as EventListener);
+    })
 
     return {
       valuationData,

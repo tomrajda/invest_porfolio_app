@@ -47,11 +47,17 @@ export default defineComponent({
                         data.type === 'STOCK_ADDED' || 
                         data.type === 'STOCK_DELETED' || 
                         data.type === 'PORTFOLIO_ADDED' ||
-                        data.type == 'PORTFOLIO_DELETED'
+                        data.type == 'PORTFOLIO_DELETED' ||
+                        data.type === 'PRICE_ALERT'
                     ) {
                         // notifcation from Broker
                         notification.value = data.content
                     }
+                    else if (data.type === 'PRICE_UPDATE') { 
+                        // Send message to Vue
+                        window.dispatchEvent(new CustomEvent('priceUpdated', { detail: data }));
+                    }
+                    
                     console.log('Message received from WebSockets:', data)
                 };
 

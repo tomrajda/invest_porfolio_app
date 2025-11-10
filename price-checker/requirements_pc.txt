@@ -1,0 +1,6 @@
+requests            # get prices from Finnhub
+APScheduler==3.10.4 # schedule recurring tasks
+websockets          # communication with Broker
+SQLAlchemy          # connect with Postgres db for downloading current prices
+psycopg2-binary     # database controller
+python-dotenv

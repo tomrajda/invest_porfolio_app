@@ -51,7 +51,21 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
     restart: always
-    
+  
+  # price checker
+  price-checker:
+    build:
+      context: ./price-checker
+      dockerfile: Dockerfile
+    environment:
+      FINNHUB_API_KEY: 'd3uj149r01qil4aqb7n0d3uj149r01qil4aqb7ng' 
+      DATABASE_URL: postgresql://postgres:mypassword@postgres_local:5432/portfolio_db
+      NOTIFICATION_BROKER_URL: ws://notification-broker:8001/flask-push
+    depends_on:
+      - postgres_local
+      - notification-broker
+    restart: always
+
   # efficiency metrics (prometheus)
   prometheus:
     image: prom/prometheus:latest
@@ -78,17 +92,13 @@ services:
       - prometheus
 
 #  frontend:
-#      # Lokalizacja, z której ma budować (katalog 'frontend')
 #      build:
 #        context: ./frontend 
-#      # Mapowanie portu: 8080 na hoście Arch => 8080 w kontenerze (typowe dla Vue)
 #      ports:
 #        - "8080:8080"
-#      # Mapowanie wolumenu, aby umożliwić Hot Reloading (zmiany kodu widoczne natychmiast)
 #      volumes:
 #        - ./frontend:/app
-#      # Pamiętaj, aby serwis backendowy był dostępny dla frontendu
-#     depends_on:
+#      depends_on:
 #        - web
 
 volumes:
