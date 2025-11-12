@@ -8,9 +8,7 @@
       <input type="text" v-model="portfolioName" placeholder="Portfolio name" required />
       <button type="submit" :disabled="!authToken">Submit</button>
     </form>
-    
     <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">{{ message }}</p>
-    
     <div v-if="!authToken" class="error">
       You must be logged in to create portfolios.
     </div>
@@ -42,12 +40,12 @@ export default defineComponent({
 
     const createPortfolio = async () => {
       if (!authToken.value) {
-        message.value = 'Błąd: Token autoryzacji jest nieobecny. Zaloguj się ponownie.'
+        message.value = 'Error: Authorization token is missing. Please log in again.'
         isSuccess.value = false
-        return;
+        return
       }
 
-      message.value = 'Tworzenie...'
+      message.value = 'Creating...'
 
       try {
         const response = await $api.post('/portfolios', 
@@ -60,22 +58,22 @@ export default defineComponent({
         );
 
         isSuccess.value = true
-        message.value = `Sukces! Portfel '${response.data.name}' (ID: ${response.data.id}) utworzony.`
+        message.value = `Success! Wallet '${response.data.name}' (ID: ${response.data.id}) created.`
         
         setTimeout(() => {
-            message.value = '';
-            isSuccess.value = false; 
-        }, 5000);
+            message.value = ''
+            isSuccess.value = false
+        }, 5000)
         
         portfolioName.value = '' // clear field
         emit('portfolio-created')
 
       } catch (error: any) {
-        isSuccess.value = false;
+        isSuccess.value = false
         if (error.response) {
-          message.value = `Błąd: ${error.response.data.msg || error.response.statusText}`
+          message.value = `Error: ${error.response.data.msg || error.response.statusText}`
         } else {
-          message.value = 'Błąd sieci. Sprawdź backend.'
+          message.value = 'Network error'
         }
       }
     };
@@ -86,7 +84,7 @@ export default defineComponent({
       isSuccess,
       authToken,
       createPortfolio,
-    };
+    }
   },
-});
+})
 </script>

@@ -735,3 +735,43 @@ button[type="submit"]:disabled {
     transform: translateY(-2px) scale(1.01); 
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6); 
 }
+
+@keyframes flash-green {
+    0% { background-color: rgba(76, 175, 80, 0.4); }
+    100% { background-color: transparent; }
+}
+@keyframes flash-red {
+    0% { background-color: rgba(255, 82, 82, 0.4); }
+    100% { background-color: transparent; }
+}
+
+.flash-up {
+    animation: flash-green 1s ease-out 1;
+}
+.flash-down {
+    animation: flash-red 1s ease-out 1;
+}
+
+@keyframes flash-green-total {
+    0% { background-color: rgba(76, 175, 80, 0.7); color: black; }
+    50% { background-color: rgba(76, 175, 80, 0.2); }
+    100% { background-color: transparent; color: var(--color-primary); }
+}
+@keyframes flash-red-total {
+    0% { background-color: rgba(255, 82, 82, 0.7); color: black; }
+    50% { background-color: rgba(255, 82, 82, 0.2); }
+    100% { background-color: transparent; color: var(--color-primary); }
+}
+
+.total-value.flash-up-total {
+    animation: flash-green-total 1s ease-out 1;
+}
+.total-value.flash-down-total {
+    animation: flash-red-total 1s ease-out 1;
+}
+
+.total-value {
+    display: inline-block;
+    padding: 2px 5px;
+    border-radius: 3px;
+}

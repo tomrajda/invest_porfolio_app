@@ -23,7 +23,7 @@
       <h2></h2>
       
     <div class="total-value-container">
-      <span class="total-value">{{ formatCurrency(valuationData.total_market_value) }}</span>
+      <span class="total-value" :class="totalFlash">{{ formatCurrency(valuationData.total_market_value) }}</span>
     </div>
 
       <table class="stocks-table">
@@ -49,14 +49,10 @@
             </td>
             <td>{{ parseFloat(stock.shares).toFixed(2)}}</td>
             <td>{{ formatCurrency(stock.purchase_price) }}</td>
-            <td>{{ formatCurrency(stock.current_price) }}</td>
-            <td>{{ formatCurrency(stock.market_value) }}</td>
-            <td :class="stock.profit_loss > 0 ? 'profit' : 'loss'">
-              {{ formatCurrency(stock.profit_loss) }}
-            </td>
-            <td>
-              <button @click="deleteStock(stock.id)" class="delete-btn">Delete</button>
-            </td>
+            <td :class="stock.flash">{{ formatCurrency(stock.current_price) }}</td>
+            <td :class="stock.flash">{{ formatCurrency(stock.market_value) }}</td>
+            <td :class="stock.profit_loss > 0 ? 'profit' : 'loss'">{{ formatCurrency(stock.profit_loss) }}</td>
+            <td><button @click="deleteStock(stock.id)" class="delete-btn">Delete</button></td>
           </tr>
         </tbody>
       </table>
@@ -77,6 +73,7 @@ interface StockValuation {
   profit_loss: number
   logo_url: string
   company_name: string
+  flash?: string
 }
 
 interface PortfolioValuation {
@@ -99,6 +96,7 @@ export default defineComponent({
 
     const instance = getCurrentInstance()
     const $api = instance?.appContext.config.globalProperties.$api
+    const totalFlash = ref('')
 
     const formatCurrency = (value: number | string | null): string => {
         if (value === null) return 'N/A'
@@ -156,30 +154,72 @@ export default defineComponent({
         fetchValuation(props.portfolioId)
       }
     }
+    
     const updateTablePrice = (event: CustomEvent) => {
-        const update = event.detail;
+        const update = event.detail
 
         if (!valuationData.value) {
             return
         }
-
-        const stockIndex = valuationData.value.stocks.findIndex(s => s.ticker === update.ticker);
+        
+        const newPrice = update.price
+        const stockIndex = valuationData.value.stocks.findIndex(s => s.ticker === update.ticker)
         
         if (stockIndex > -1) {
             
-            const stock = valuationData.value.stocks[stockIndex];
-            
-            if (stock) { 
+            const stock: StockValuation = valuationData.value.stocks[stockIndex]!
+            const oldTotal = valuationData.value!.total_market_value
 
-                stock.current_price = update.price;
-                
-                const shares = parseFloat(stock.shares);
-                const purchasePrice = parseFloat(stock.purchase_price);
-                
-                stock.market_value = update.price * shares;
-                stock.profit_loss = (stock.market_value - (purchasePrice * shares));
+            // Zabezpieczenie przed użyciem null/undefined
+            const oldPrice = stock.current_price !== null ? stock.current_price : 0
+            let flashClass = ''
+            
+            if (newPrice > oldPrice) {
+                flashClass = 'flash-up'
+            } else if (newPrice < oldPrice) {
+                flashClass = 'flash-down'
             }
+
+          // Aktualizacja cen
+          stock.current_price = newPrice
+          
+          // Przeliczenie wartości (używając nowej ceny)
+          const shares = parseFloat(stock.shares)
+          const purchasePrice = parseFloat(stock.purchase_price)
+          
+          stock.market_value = newPrice * shares
+          stock.profit_loss = (stock.market_value - (purchasePrice * shares))
+          
+          // Wprowadzenie i usunięcie klasy flash
+          stock.flash = flashClass
+
+          setTimeout(() => {
+              stock.flash = ''; // Usuń klasę flash po 1 sekundzie
+          }, 1000)          
+          
+                  let newTotal = 0
+        valuationData.value.stocks.forEach(s => {
+            newTotal += s.market_value
+        })
+
+        valuationData.value.total_market_value = newTotal
+
+        let totalFlashClass = '';
+        if (newTotal > oldTotal) {
+            totalFlashClass = 'flash-up-total';
+        } else if (newTotal < oldTotal) {
+            totalFlashClass = 'flash-down-total';
         }
+
+        totalFlash.value = totalFlashClass
+
+        setTimeout(() => {
+            totalFlash.value = '';
+        }, 1000)
+
+        }
+
+
     }
     
     watch(() => props.portfolioId, (newId) => {
@@ -201,6 +241,7 @@ export default defineComponent({
       valuationData,
       loading,
       error,
+      totalFlash,
       formatCurrency,
       deleteStock,
       handleToggle,

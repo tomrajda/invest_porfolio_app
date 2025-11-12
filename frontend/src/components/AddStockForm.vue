@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, getCurrentInstance, watch } from 'vue';
+import { defineComponent, ref, getCurrentInstance, watch } from 'vue'
 
 export default defineComponent({
   name: 'AddStockForm',
@@ -32,20 +32,20 @@ export default defineComponent({
   },
   emits: ['stock-added', 'close'],
   setup(props, { emit }) {
-    const ticker = ref('');
-    const shares = ref<number | null>(null);
-    const purchasePrice = ref<number | null>(null);
-    const message = ref('');
-    const isSuccess = ref(false);
+    const ticker = ref('')
+    const shares = ref<number | null>(null)
+    const purchasePrice = ref<number | null>(null)
+    const message = ref('')
+    const isSuccess = ref(false)
 
-    const instance = getCurrentInstance();
-    const $api = instance?.appContext.config.globalProperties.$api;
+    const instance = getCurrentInstance()
+    const $api = instance?.appContext.config.globalProperties.$api
 
     const addStock = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token || !props.portfolioId) return;
+      const token = localStorage.getItem('access_token')
+      if (!token || !props.portfolioId) return
 
-      message.value = 'Adding stock...';
+      message.value = 'Adding stock...'
 
       try {
         const response = await $api.post(`/portfolios/${props.portfolioId}/stocks`, 
@@ -59,30 +59,30 @@ export default defineComponent({
               Authorization: `Bearer ${token}`
             }
           }
-        );
+        )
 
-        isSuccess.value = true;
-        message.value = response.data.msg;
+        isSuccess.value = true
+        message.value = response.data.msg
 
         // from Reset
-        ticker.value = '';
-        shares.value = null;
-        purchasePrice.value = null;
+        ticker.value = ''
+        shares.value = null
+        purchasePrice.value = null
         
         emit('stock-added')
 
       } catch (error: any) {
-        isSuccess.value = false;
-        message.value = `Error: ${error.response?.data?.msg || 'The stock could not be added.'}`;
+        isSuccess.value = false
+        message.value = `Error: ${error.response?.data?.msg || 'The stock could not be added.'}`
       }
-    };
+    }
 
     watch(() => props.portfolioId, (newId, oldId) => {
       
       if (newId !== oldId) {
-        message.value = '';
+        message.value = ''
       }
-    });
+    })
 
     return {
       ticker,
@@ -91,7 +91,7 @@ export default defineComponent({
       message,
       isSuccess,
       addStock,
-    };
+    }
   },
-});
+})
 </script>

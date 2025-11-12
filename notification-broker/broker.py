@@ -11,27 +11,35 @@ logger = logging.getLogger(__name__)
 ACTIVE_CONNECTIONS = {}
 
 async def register_connection(websocket, user_id):
-    """Rejestruje nowe połączenie i dodaje je do globalnego rejestru."""
+    """
+    Registers a new connection and 
+    adds it to the global registry
+    """
+
     ACTIVE_CONNECTIONS[user_id] = websocket
     logger.info(f"User {user_id} connected. Active connections: {len(ACTIVE_CONNECTIONS)}")
 
 async def unregister_connection(user_id):
-    """Usuwa połączenie z rejestru po jego zamknięciu."""
+    """
+    Removes the connection from the 
+    registry after it is closed.
+    """
+
     if user_id in ACTIVE_CONNECTIONS:
         del ACTIVE_CONNECTIONS[user_id]
         logger.info(f"User {user_id} disconnected. Active connections: {len(ACTIVE_CONNECTIONS)}")
 
 async def consumer_handler(websocket, path):
     """
-    Obsługuje wiadomości przychodzące od klienta (Frontend Vue).
-    Front-end użyje tego do rejestracji swojego ID.
+    Handles incoming messages from the client (Vue frontend)
+    The frontend will use this to register its ID
     """
     try:
-        # 1. Nasłuchujemy pierwszej wiadomości (rejestracja)
+        # 1. listen to the first message (registration)
         registration_message = await websocket.recv()
         data = json.loads(registration_message)
         
-        # Oczekujemy, że klient Vue wyśle swoje 'user_id' na początku
+        # expect the Vue client to send its ‘user_id’ at the beginning
         user_id = data.get('user_id')
         if not user_id:
             logger.error("Registration failed: 'user_id' missing in client message.")
@@ -39,26 +47,25 @@ async def consumer_handler(websocket, path):
 
         await register_connection(websocket, user_id)
 
-        # 2. Główna pętla nasłuchiwania
-        # Utrzymujemy połączenie otwarte, aby mogło odbierać wiadomości od Brokera
-        # lub od klienta (np. pingi). Wystarczy, że połączenie jest aktywne.
-        # Ta pętla będzie trwała, dopóki połączenie nie zostanie przerwane.
+        # 2. Main listening loop
+        # We keep the connection open so that it can receive messages from the Broker
+        # or from the client (e.g., pings). It is sufficient for the connection to be active.
+        # This loop will continue until the connection is terminated.
         await websocket.wait_closed()
 
     finally:
-        # Połączenie zamknięte - usuwamy użytkownika z rejestru
+        # closed connection - we remove the user from the registry
         if user_id:
             await unregister_connection(user_id)
 
-
 async def producer_handler(websocket, path):
     """
-    Obsługuje wiadomości przychodzące od serwisu Flask (Klienta).
-    Serwis Flask łączy się, wysyła wiadomość i zamyka.
+    Handles incoming messages from the Flask service (Client)
+    The Flask service connects, sends a message, and closes
     """
     logger.info(f"FLASK CONNECTION RECEIVED on {path}.")
     try:
-        # Nasłuchujemy wiadomości z serwisu Flask
+        # listen to messages from the Flask service
         message_from_flask = await websocket.recv()
         payload = json.loads(message_from_flask)
         
@@ -68,11 +75,11 @@ async def producer_handler(websocket, path):
         if target_user_id and target_user_id in ACTIVE_CONNECTIONS:
             target_websocket = ACTIVE_CONNECTIONS[target_user_id]
             
-            # WYSŁANIE: Wypchnięcie wiadomości do front-endu
+            # SENDING: Pushing messages to the front end
             await target_websocket.send(json.dumps(notification))
-            logger.info(f"Notification PUSHED to user {target_user_id}: {notification['type']}") # <-- JEŚLI TO DZIAŁA, MUSI SIĘ ZALOGOWAĆ
+            logger.info(f"Notification PUSHED to user {target_user_id}: {notification['type']}")
             
-            # Dodatkowe zabezpieczenie: Odsyłamy do Flask-a potwierdzenie
+            # Additional security:send confirmation to Flask
             await websocket.send(json.dumps({"status": "delivered"}))
         
         elif target_user_id:
@@ -81,39 +88,22 @@ async def producer_handler(websocket, path):
         else:
             logger.error("Invalid payload from Flask: missing user_id.")
 
-        # Opcjonalnie: odsyłamy do Flask-a potwierdzenie
-        await websocket.send(json.dumps({"status": "delivered"}))
+        # Optional: we refer to Flask for confirmation
+        # await websocket.send(json.dumps({"status": "delivered"}))
 
     except websockets.exceptions.ConnectionClosedOK:
         logger.info("Flask client disconnected normally.")
     except Exception as e:
         logger.error(f"Error handling Flask client message: {e}")
 
-
 async def router_handler(websocket, path):
     """
-    Kieruje połączenia do odpowiedniego handlera na podstawie ścieżki URL.
+    It directs calls to the appropriate 
+    handler based on the URL path
     """
-    
-    # path = '/'
-    logger.info(f"FLASK 1.1 TEST")
-    #try:
-    #    if len(args) > 0:
-    #        path = args[0] # To jest najbardziej prawdopodobne miejsce, gdzie jest ścieżka
-    #    elif 'path' in kwargs and kwargs['path'] is not None:
-    #        path = kwargs['path']
-            
-    # except Exception as e:
-    #    logger.error(f"Failed to determine path: {e}")
-        # W przypadku błędu path pozostaje '/'
-        
-    # KLUCZOWA POPRAWKA LOGICZNA: Jeśli path jest 'None' (co się dzieje), traktujemy to jako '/'.
-    #if path is None:
-    #    path = '/' 
 
     logger.info(f"Incoming connection on path: {path}")
 
-    # 2. Routing (Teraz wiemy, że 'path' nie jest None)
     if path == "/flask-push":
         await producer_handler(websocket, path) 
     
@@ -124,15 +114,18 @@ async def router_handler(websocket, path):
         logger.warning(f"Connection refused for unknown path: {path}")
         await websocket.close(code=1000, reason="Invalid path")
 
-
 async def main():
-    """Główna funkcja uruchamiająca JEDEN serwer WebSocket."""
+    """
+    The main function that starts 
+    ONE WebSocket server
+    """
     
-    # Uruchamiamy tylko JEDEN serwer i używamy router_handler do rozróżniania ścieżek
+    # start ONE server 
+    # use router_handler to route between paths.
     server = websockets.serve(router_handler, "0.0.0.0", 8001)
 
     await server
-    await asyncio.Future() # Trzyma serwer uruchomiony na zawsze
+    await asyncio.Future() # keeps server run forever
 
 if __name__ == "__main__":
     logger.info("Starting Notification Broker on port 8001...")

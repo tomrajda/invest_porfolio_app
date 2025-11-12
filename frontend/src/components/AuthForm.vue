@@ -34,7 +34,7 @@ export default defineComponent({
     const isSuccess = ref(false)
 
     // access to global API client
-    const instance = getCurrentInstance();
+    const instance = getCurrentInstance()
     const $api = instance?.appContext.config.globalProperties.$api
 
     const handleSubmit = async () => {
@@ -47,35 +47,35 @@ export default defineComponent({
           password: password.value
         });
 
-        isSuccess.value = true;
+        isSuccess.value = true
         
         if (isLogin.value) {
           // log in success: save TOKEN
           const token = response.data.access_token
           localStorage.setItem('access_token', token)
-          message.value = 'Zalogowano pomyślnie! Token zapisany.'
+          message.value = 'Successfully logged in!'
           
           emit('login-success')
           // to do: ADD HERE REDIRECTION
         } else {
           // registration success
-          message.value = 'Rejestracja udana! Możesz się teraz zalogować.'
-          isLogin.value = true; // switch to login MODE
+          message.value = 'Registration successful!'
+          isLogin.value = true // switch to login MODE
         }
       
-      username.value = '';
-      password.value = '';
+      username.value = ''
+      password.value = ''
       
       } catch (error: any) {
         isSuccess.value = false;
         // backend error handling (i.e. 401, 409)
         if (error.response) {
-          message.value = `Błąd: ${error.response.data.msg || error.response.statusText}`
+          message.value = `Error: ${error.response.data.msg || error.response.statusText}`
         } else {
-          message.value = 'Wystąpił błąd sieci. Sprawdź, czy backend działa.'
+          message.value = 'A network error has occurred.'
         }
       }
-    };
+    }
 
     return {
       username,
@@ -84,7 +84,7 @@ export default defineComponent({
       message,
       isSuccess,
       handleSubmit,
-    };
+    }
   },
-});
+})
 </script>

@@ -11,12 +11,13 @@ import { jwtDecode } from 'jwt-decode'
 export default defineComponent({
     name: 'WebSocketClient',
     setup() {
+        
         const socket = ref<WebSocket | null>(null)
         const notification = ref<string | null>(null)
         const userId = ref<string | null>(null)
         
         // Broker address 
-        const WS_URL = 'ws://localhost:8001';
+        const WS_URL = 'ws://localhost:8001'
         
         const connectWebSocket = () => {
             const token = localStorage.getItem('access_token')
@@ -55,7 +56,7 @@ export default defineComponent({
                     }
                     else if (data.type === 'PRICE_UPDATE') { 
                         // Send message to Vue
-                        window.dispatchEvent(new CustomEvent('priceUpdated', { detail: data }));
+                        window.dispatchEvent(new CustomEvent('priceUpdated', { detail: data }))
                     }
                     
                     console.log('Message received from WebSockets:', data)
@@ -95,7 +96,7 @@ export default defineComponent({
         return {
             notification,
             clearNotification,
-        };
+        }
     },
-});
+})
 </script>

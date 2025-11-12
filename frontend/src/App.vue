@@ -1,12 +1,8 @@
 <template>
-  
-  
-
   <div id="app-container">
-    
     <header class="app-header">
         <h1>
-          <img src="/portseido_logo_no_text.svg" alt="Logo Portfela" class="app-logo">
+          <img src="/portseido_logo_no_text.svg" alt="portfolio tracker" class="app-logo">
           portfolio tracker
         </h1>
         <div v-if="isAuthenticated" class="account-menu-wrapper">
@@ -29,9 +25,7 @@
     </header>
     <WebSocketClient v-if="isAuthenticated" />
     <div v-if="isAuthenticated" class="portfolio-manager">
-      
         <div class="portfolio-list-area">
-          
           <div v-if="showCreatePortfolio==false" >
             <button 
                 @click="showCreatePortfolio = !showCreatePortfolio" 
@@ -41,14 +35,11 @@
               <img src="/add-symbol.svg" alt="Refresh" class="refresh-icon" />
             </button>
           </div>
-
-            
             <div v-if="showCreatePortfolio" class="add-stock-area" style="padding: 15px; margin-bottom: 15px;">
                 <CreatePortfolioForm 
                   @portfolio-created="refreshPortfolioList" 
                   @close="showCreatePortfolio = false" />
             </div>
-            
             <PortfolioList 
                 :key="portfolioListKey"
                 :selected-portfolio-id="selectedPortfolioId"
@@ -56,16 +47,12 @@
                 @portfolio-deleted="refreshPortfolioList"
             />
         </div>
-
         <div class="portfolio-details-area" v-if="selectedPortfolioId !== null">
-            
           <PortfolioValuation 
                   :key="valuationKey" 
                   :portfolio-id="selectedPortfolioId"
                   :is-add-form-visible="showAddStockForm"         
                   @toggle-add-stock="toggleAddStockForm" />
-
-
           <div v-if="showAddStockForm" class="add-stock-area">
               <AddStockForm 
                   :portfolio-id="selectedPortfolioId"
@@ -75,16 +62,13 @@
               />
           </div>
         </div>
-        
         <div v-else class="info-message" style="grid-column: 1 / -1; text-align: center;">
             Select a portfolio from the list or create a new one to view details and actions.
         </div>
-
     </div>
     <div v-else class="info-message">
         tomek
     </div>
-
   </div>
 </template>
 
@@ -115,39 +99,42 @@ export default defineComponent({
     const portfolioListKey = ref(0)
     const valuationKey = ref(0)
     const isMenuOpen = ref(false)
-    const userName = ref('Admin')
+    const userName = ref('john doe')
     const showCreatePortfolio = ref(false)
     const showAddStockForm = ref(false)
 
     const checkAuthStatus = () => {
       isAuthenticated.value = !!localStorage.getItem('access_token')
-    };
+    }
 
+    // -- On login events --
     const handleLoginSuccess = () => {
+
+      // Used once successful login emited
+
       isAuthenticated.value = true
       showCreatePortfolio.value = false
       showAddStockForm.value = false
-      // Po zalogowaniu wymuszamy odświeżenie listy portfeli
+      
+      // after logging in - force the wallet list to refresh
+      const token = localStorage.getItem('access_token')
+      if (token) {
+          try {
+              const decodedToken: { sub: string } = jwtDecode(token);
+              // backend doesnt send user name for now - use user id Account box
+              userName.value = 'ID: ' + decodedToken.sub
 
-            const token = localStorage.getItem('access_token');
-            if (token) {
-                try {
-                    const decodedToken: { sub: string } = jwtDecode(token);
-                    // Twoje tokeny przechowują 'sub' (subject) jako ID.
-                    
-                    // UWAGA: Ponieważ backend nie wysyła nazwy, używamy ID jako mocka,
-                    // dopóki nie dodamy endpointu /user/me do pobrania nazwy
-                    userName.value = 'User ID: ' + decodedToken.sub; 
-
-                } catch (e) {
-                    console.error("Błąd dekodowania tokenu:", e);
-                    userName.value = 'Guest';
-                }
-            }
-            portfolioListKey.value++;
-    };
-    
+          } catch (e) {
+              console.error("Token decoding error:", e)
+              // userName.value = 'Guest'
+          }
+      }
+      portfolioListKey.value++
+    }   
     const handleLogout = () => {
+
+      // Used after user log out
+
       localStorage.removeItem('access_token')
       isAuthenticated.value = false
       selectedPortfolioId.value = null
@@ -155,48 +142,59 @@ export default defineComponent({
       isMenuOpen.value = false
       showCreatePortfolio.value = false
       showAddStockForm.value = false
-      // Używamy reload, aby wymusić czysty stan aplikacji po wylogowaniu
+      
+      // reload to force clean app state after log out
       window.location.reload() 
-    };
-    
-    // -------------------------------------------------------------------
-    // FUNKCJE ODŚWIEŻANIA (ZGODNE Z TWOIM ZAMIARZEM)
-    // -------------------------------------------------------------------
 
-    const refreshPortfolioList = () => {
-        // Używane po DODANIU/USUNIĘCIU PORTFELA
-        portfolioListKey.value++
-        // Resetuje widok szczegółów po usunięciu portfela
-        selectedPortfolioId.value = null; 
-        selectedPortfolioName.value = null;
-        showAddStockForm.value = false;
-        showCreatePortfolio.value = false;
     }
-
-    const refreshValuationData = () => {
-      // Używane po DODANIU/USUNIĘCIU AKCJI
-      valuationKey.value++
-      showAddStockForm.value = false // Zamykamy formularz po dodaniu akcji
-    };
     
-    // -------------------------------------------------------------------
-    // LOGIKA WYBORU PORTFELA
-    // -------------------------------------------------------------------
+    // -- Refresh data --
+    const refreshPortfolioList = () => {
 
+      // Used after ADDING/REMOVING WALLET
+
+      portfolioListKey.value++
+      
+      // Reset details view after portfolio deletion
+      selectedPortfolioId.value = null
+      selectedPortfolioName.value = null
+      showAddStockForm.value = false
+      showCreatePortfolio.value = false
+
+    }
+    const refreshValuationData = () => {
+
+      // Used after ADDING/REMOVING SHARES
+
+      valuationKey.value++
+      showAddStockForm.value = false
+
+    }
+    
+    // -- Selection logic --
     const selectPortfolio = (id: number, name: string) => {
+      
+      // Used when switching porfolios
+
       selectedPortfolioId.value = id
       selectedPortfolioName.value = name
-      // Zamykamy formularz dodawania akcji przy przełączaniu portfela
+      // close the shares add form when switching portfolios
       showAddStockForm.value = false
+
     }
     const toggleAddStockForm = () => {
+
+      // Shows / hides Add Stock Form
+
       showAddStockForm.value = !showAddStockForm.value
+
     }
+
     onMounted(() => {
-            checkAuthStatus();
-            // Wywołaj logikę odczytu tokenu przy ładowaniu strony, jeśli zalogowano
+            checkAuthStatus()
+            // call token reading logic when loading the page if logged in
             if (localStorage.getItem('access_token')) {
-                handleLoginSuccess();
+                handleLoginSuccess()
             }
         })
 

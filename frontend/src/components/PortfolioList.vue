@@ -1,6 +1,5 @@
 <template>
   <div class="list-container">
-    
     <div v-if="loading" class="info-message">Loading portfolios...</div>
     <div v-else-if="portfolios.length === 0" class="info-message error">
       You don't have any portfolios yet. Create one!
@@ -14,8 +13,7 @@
       >
         <div class="list-item-content"> <span class="portfolio-name">
               {{ portfolio.name }}
-          </span>
-            
+          </span>            
           <button 
               @click.stop="confirmDelete(portfolio.id, portfolio.name)" 
               class="delete-portfolio-btn"
@@ -46,6 +44,7 @@ export default defineComponent({
   },
   emits: ['select-portfolio', 'portfolio-deleted'],
   setup(_,  { emit }) {
+    
     const portfolios = ref<Portfolio[]>([])
     const loading = ref(false)
 
@@ -85,8 +84,6 @@ export default defineComponent({
 
             // send event to parent
             emit('portfolio-deleted')
-                
-            // alert(`Portfel '${portfolioName}' usunięty pomyślnie.`);
 
         } catch (error: any) {
                 alert(error.response?.data?.msg || 'Error: Failed to delete wallet.')
