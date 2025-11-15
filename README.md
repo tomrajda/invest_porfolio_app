@@ -25,7 +25,8 @@ graph TD
     B -->|Cache Connection| D(Redis)
     B -->|HTTP External| E(Finnhub API)
     
-    B -->|AI Sentiment Request| J(Gemini Analyst)
+    B -->|HTTP/REST| J(Gemini Analyst)
+    B -->|WS Push Notification| H
     
     B -- "Scraped /metrics" --> F(Prometheus)
     F -->|Query PromQL| G(Grafana)
