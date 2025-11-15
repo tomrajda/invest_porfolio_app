@@ -15,7 +15,8 @@ export default defineComponent({
         const socket = ref<WebSocket | null>(null)
         const notification = ref<string | null>(null)
         const userId = ref<string | null>(null)
-        
+        const sentimentResult = ref<any>(null)
+
         // Broker address 
         const WS_URL = 'ws://localhost:8001'
         
@@ -44,6 +45,12 @@ export default defineComponent({
                 socket.value.onmessage = (event) => {
                     const data = JSON.parse(event.data)
                     
+                    if (data.type === 'SENTIMENT_READY') {
+                                    sentimentResult.value = data
+                                    notification.value = data.content
+                                    localStorage.setItem('sentiment_result', JSON.stringify(data))
+                    }
+
                     if (
                         data.type === 'STOCK_ADDED' || 
                         data.type === 'STOCK_DELETED' || 
@@ -79,9 +86,15 @@ export default defineComponent({
         }
 
         const clearNotification = () => {
-            notification.value = null
+            if (sentimentResult.value) {
+                localStorage.setItem('last_sentiment_result', JSON.stringify(sentimentResult.value));
+                sentimentResult.value = null;
+                
+                // KLUCZOWA ZMIANA: WYŚLIJ SYGNAŁ DO RODZICA
+                window.dispatchEvent(new CustomEvent('sentimentDisplayed')); 
+            }
+            notification.value = null;
         }
-
         onMounted(connectWebSocket)
         onUnmounted(disconnectWebSocket)
         
@@ -94,6 +107,7 @@ export default defineComponent({
         })
 
         return {
+            sentimentResult,
             notification,
             clearNotification,
         }

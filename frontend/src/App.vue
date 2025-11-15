@@ -53,13 +53,17 @@
                   :portfolio-id="selectedPortfolioId"
                   :is-add-form-visible="showAddStockForm"         
                   @toggle-add-stock="toggleAddStockForm" />
+          <SentimentForm 
+                :ticker="'AAPL'"
+                class="sentiment-analysis-area"
+          />
           <div v-if="showAddStockForm" class="add-stock-area">
-              <AddStockForm 
-                  :portfolio-id="selectedPortfolioId"
-                  :portfolio-name="selectedPortfolioName"
-                  @stock-added="refreshValuationData"
-                  @close="showAddStockForm = false"
-              />
+          <AddStockForm 
+              :portfolio-id="selectedPortfolioId"
+              :portfolio-name="selectedPortfolioName"
+              @stock-added="refreshValuationData"
+              @close="showAddStockForm = false"
+          />
           </div>
         </div>
         <div v-else class="info-message" style="grid-column: 1 / -1; text-align: center;">
@@ -81,6 +85,7 @@ import PortfolioList from './components/PortfolioList.vue'
 import AddStockForm from './components/AddStockForm.vue'
 import PortfolioValuation from './components/PortfolioValuation.vue'
 import WebSocketClient from './components/WebSocketClient.vue'
+import SentimentForm from './components/SentimentForm.vue'
 
 export default defineComponent({
   name: 'App',
@@ -90,7 +95,8 @@ export default defineComponent({
     PortfolioList,
     AddStockForm,
     PortfolioValuation,
-    WebSocketClient
+    WebSocketClient,
+    SentimentForm
   },
   setup() {
     const isAuthenticated = ref(false)
@@ -196,7 +202,10 @@ export default defineComponent({
             if (localStorage.getItem('access_token')) {
                 handleLoginSuccess()
             }
+
         })
+
+   
 
     return {
       isAuthenticated,

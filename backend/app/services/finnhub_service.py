@@ -74,3 +74,31 @@ def get_company_metadata(ticker: str) -> dict | None:
     except requests.exceptions.RequestException as e:
         print(f"Finnhub communciation error (metadata for {ticker}): {e}")
         return None
+
+def get_recent_news_text(ticker: str, count: int = 5) -> str:
+    """
+    Pobiera 'count' nagłówków wiadomości dla danego symbolu i łączy je w jeden tekst.
+    """
+    if not API_KEY:
+        return "Brak klucza API Finnhub."
+
+    # Endpoint do pobierania wiadomości
+    url = f"{FINNHUB_URL}/company-news?symbol={ticker}&from=2024-01-01&to=2025-12-31&token={API_KEY}"
+    # Uwaga: Daty są mockowane dla API Finnhub. W praktyce użyjesz dynamicznych dat.
+
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        news_data = response.json()
+        
+        # Ekstrakcja nagłówków z pierwszych 'count' wiadomości
+        headlines = [item.get('headline') for item in news_data[:count] if item.get('headline')]
+        
+        if not headlines:
+            return f"Brak nowych wiadomości dla {ticker}."
+            
+        # Złączenie nagłówków w jeden tekst, który zostanie przekazany do Gemini
+        return " | ".join(headlines)
+        
+    except requests.exceptions.RequestException as e:
+        return f"Błąd połączenia z Finnhub (News): {e}"

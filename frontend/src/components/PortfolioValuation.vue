@@ -229,8 +229,8 @@ export default defineComponent({
     }, { immediate: true })
 
     onMounted(() => {
-            window.addEventListener('priceUpdated', updateTablePrice as EventListener);
-            fetchValuation(props.portfolioId);
+            window.addEventListener('priceUpdated', updateTablePrice as EventListener)
+            fetchValuation(props.portfolioId)
     })
 
     onUnmounted(() => {

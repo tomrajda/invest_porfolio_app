@@ -775,3 +775,20 @@ button[type="submit"]:disabled {
     padding: 2px 5px;
     border-radius: 3px;
 }
+
+.sentiment-analysis-area {
+    background-color: var(--bg-surface);
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+}
+.sentiment-analysis-area textarea {
+    min-height: 100px;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #2a2d40;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-light);
+    border-radius: 4px;
+}

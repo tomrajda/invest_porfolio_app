@@ -3,11 +3,18 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 
 from app import db, bcrypt
 from app.models import User, Portfolio, Stock
-from app.notifications.client import send_notification
-from .services.finnhub_service import get_current_price, get_company_metadata
+from app.notifications.client import send_notification_async, send_notification
+from .services.finnhub_service import get_current_price, get_company_metadata, get_recent_news_text
 
 from prometheus_client import Counter
 import logging
+
+import os
+import asyncio
+import requests
+import threading
+
+GEMINI_ANALYST_URL = os.environ.get('GEMINI_ANALYST_URL', 'http://gemini-analyst:5001')
 
 # metrics for tracking failed login attempts
 LOGIN_FAILURES = Counter(
@@ -108,7 +115,7 @@ def create_portfolio():
         'type': 'PORTFOLIO_ADDED', 
         'content': message 
     }
-    send_notification(user_id, notification_message) 
+    send_notification_async(user_id, notification_message) 
 
     # 5. success response
     return jsonify({
@@ -336,3 +343,105 @@ def delete_portfolio(portfolio_id):
         db.session.rollback()
         print(f"Database error during portfolio deletion: {e}")
         return jsonify({"msg": "An internal error occurred during deletion."}), 500
+
+# -----------------------------------------------------------
+# Logika Analizy AI (URUCHAMIANA W TLE PRZEZ SCHEDULER)
+# -----------------------------------------------------------
+async def analyze_and_notify(user_id: str, ticker: str, text_content: str):
+    """Asynchronicznie wysyła tekst do serwisu Gemini i powiadamia użytkownika."""
+    try:
+        # 1. Wysyłka do serwisu Gemini Analyst (REST API)
+        response = requests.post(
+            f"{GEMINI_ANALYST_URL}/analyze-sentiment",
+            json={"ticker": ticker, "text": text_content},
+            timeout=30 # Długi timeout dla Gemini
+        )
+        response.raise_for_status()
+        
+        # 2. Odbiór wyniku
+        result = response.json()
+        sentiment = result.get('sentiment', 'N/A')
+        
+        # 3. Wysłanie powiadomienia do Brokera (WebSockets)
+        notification_message = {
+            'type': 'SENTIMENT_READY',
+            'ticker': ticker,
+            'sentiment': sentiment,
+            'content': f"Twoja analiza nastrojów dla {ticker} jest gotowa: {sentiment}. Kliknij, aby zobaczyć wyniki."
+        }
+        # Zapewnij, że to jest czyste await
+        success = await send_notification_async(user_id, notification_message)
+        
+        if success:
+             logger.warning(f"AI NOTIFICATION SUCCESS: Sent ready status for {ticker}.")
+        else:
+             logger.error(f"AI NOTIFICATION FAILED: Could not push via broker for {ticker}.")
+
+    except Exception as e:
+        logger.error(f"AI Analysis Failed for {ticker}: {e}")
+
+# -----------------------------------------------------------
+# endpoint: triggers sentiment analysis
+# -----------------------------------------------------------
+@api.route('/stock/<string:ticker>/analyze', methods=['POST'])
+@jwt_required()
+def trigger_sentiment_analysis(ticker):
+    user_id = get_jwt_identity()
+    
+    logger.error(f"--- TRIGGER RECEIVED for user {user_id} and ticker {ticker} ---") # LOG TESTOWY
+
+    # 1. Pobranie tekstu z Finnhub (synchroniczne)
+    news_text = get_recent_news_text(ticker)
+    if "Błąd połączenia" in news_text or "Brak nowych wiadomości" in news_text:
+        return jsonify({"msg": news_text}), 400
+
+    # 2. Uruchomienie Asynchronicznej Analizy w TLE
+    try:
+        import threading # Zapewnij, że ten import jest na górze pliku
+        
+        # Funkcja opakowująca, która uruchamia asynchroniczne zadanie (analyze_and_notify)
+        def start_analysis_in_thread():
+            import asyncio
+            # Używamy nowej, IZOLOWANEJ pętli w nowym wątku dla bezpieczeństwa
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(analyze_and_notify(user_id, ticker, news_text))
+            loop.close()
+
+        thread = threading.Thread(target=start_analysis_in_thread)
+        thread.start()
+        
+    except Exception as e:
+        logger.error(f"Could not start analysis thread: {e}")
+        return jsonify({"msg": "Failed to start AI analysis process."}), 500
+
+    # 3. Zwrócenie natychmiastowej odpowiedzi (202 Accepted)
+    return jsonify({
+        "msg": f"AI analysis for {ticker} started in the background. You will receive a notification."
+    }), 202
+
+@api.route('/stock/<string:ticker>/analyze/manual', methods=['POST'])
+@jwt_required()
+def trigger_manual_sentiment_analysis(ticker):
+    """
+    Uruchamia analizę AI w tle dla tekstu wprowadzonego przez użytkownika.
+    """
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    text_content = data.get('text_content')
+    
+    if not text_content or len(text_content) < 50:
+        return jsonify({"msg": "Text content must be at least 50 characters long for analysis."}), 400
+
+    # 2. Uruchomienie Asynchronicznej Analizy w TLE (aby nie blokować REST API)
+    # Tworzymy i uruchamiamy nowy wątek dla asynchronicznej funkcji analyze_and_notify
+    try:
+        # UWAGA: Użycie threading.Thread do uruchomienia asyncio.run(async_func) jest kluczowe 
+        # w synchronicznym Flasku, aby uniknąć blokowania
+        thread = threading.Thread(target=lambda: asyncio.run(analyze_and_notify(user_id, ticker, text_content)))
+        thread.start()
+    except Exception as e:
+        logger.error(f"Could not start manual analysis thread: {e}")
+        return jsonify({"msg": "Failed to start AI analysis process."}), 500
+
+    return jsonify({"msg": f"AI analysis for {ticker} (manual input) started in the background. You will receive a notification."}), 202

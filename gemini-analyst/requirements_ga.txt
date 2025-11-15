@@ -1,0 +1,4 @@
+Flask
+google-genai
+requests # get news
+python-dotenv
