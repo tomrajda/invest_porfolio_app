@@ -93,6 +93,14 @@ body {
     padding: 30px;
     
 }
+
+.valuation-container {
+    /* ... */
+    overflow: visible !important; /* KLUCZOWE: Upewnienie się, że nic nie jest przycinane */
+    position: relative;
+    z-index: 1;
+}
+
 .portfolio-list-area {
     margin-right: -15px;
     
@@ -190,7 +198,7 @@ input:focus, select:focus {
     border-collapse: collapse;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    overflow: hidden;
+    overflow: visible !important;
     margin-top: 40px;
 }
 .stocks-table th {
@@ -210,6 +218,20 @@ input:focus, select:focus {
 }
 .stocks-table td:first-child, .stocks-table th:first-child { text-align: left; }
 .stocks-table tbody tr:hover td { background-color: rgba(255, 255, 255, 0.06); }
+
+.stocks-table tbody tr {
+    /* KLUCZOWE: Ustawienie kontekstu dla menu absolutnego */
+    position: relative; 
+    z-index: 10; /* Podnosimy wiersz ponad sąsiednie wiersze */
+}
+.stocks-table tbody tr:hover {
+    z-index: 100; /* Zwiększamy, gdy aktywny, aby nie był zasłonięty przez inne wiersze */
+}
+.stocks-table tbody tr:hover td {
+    background-color: #33395c;
+    /* Dodaj również wysoki z-index na hover, jeśli to nie działa globalnie */
+    z-index: 5; 
+}
 
 .profit { color: var(--color-success); font-weight: 600; }
 .loss { color: var(--color-danger); font-weight: 600; }
@@ -274,6 +296,9 @@ input:focus, select:focus {
     background: linear-gradient(145deg, #dc2626, #b91c1c); /* lekko czerwony przy hoverze */
     color: #fff;
 }
+
+
+
 .close-top-right {
     position: absolute;
     top: 12px;
@@ -776,19 +801,279 @@ button[type="submit"]:disabled {
     border-radius: 3px;
 }
 
-.sentiment-analysis-area {
+/* Ujednolicony kontener dla formularzy, który jest relative dla przycisku zamykającego */
+.sentiment-analysis-area, .add-stock-area {
     background-color: var(--bg-surface);
     padding: 25px;
     border-radius: 8px;
     border: 1px solid var(--border-subtle);
+    
+    /* Pozycjonowanie, aby przycisk zamykający działał */
+    position: relative; 
+    
+    /* Margines, który odsuwa ten blok od bloku PortfolioValuation */
+    margin-top: 20px; 
 }
+
+/* Wnętrze formularza tekstowego */
 .sentiment-analysis-area textarea {
     min-height: 100px;
     width: 100%;
     margin-bottom: 15px;
-    padding: 10px;
+    padding: 20px;
     background-color: #2a2d40;
     border: 1px solid var(--border-subtle);
     color: var(--text-light);
     border-radius: 4px;
+    resize: vertical; /* Pozwól użytkownikowi zmieniać rozmiar pionowo */
+}
+
+/* Nagłówek Formularza AI/Sentymentu */
+.sentiment-header {
+    display: flex;
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 20px; 
+}
+
+.sentiment-form-container h3 {
+    font-size: 1.5em;
+    margin: 0; 
+    color: var(--color-primary); 
+}
+
+/* ========================================================= */
+/* 2. IKONY I LOGO */
+/* ========================================================= */
+
+.gemini-logo {
+    width: 40px; 
+    height: 40px; 
+    object-fit: contain;
+}
+
+.sentiment-icon {
+    width: 20px; /* Stała szerokość dla ikon w menu */
+    height: 20px; 
+    object-fit: contain;
+    margin-right: 10px;
+}
+
+/* ========================================================= */
+/* 3. MENU KONTEKSTOWE AKCJI (TRZY KROPKI) */
+/* ========================================================= */
+
+.action-menu-wrapper {
+    position: relative;
+    z-index: 1000; /* Użyj bardzo wysokiej wartości dla pewności */
+    display: inline-block; /* Upewnij się, że element bazowy ma prawidłowe wymiary */
+}
+
+.menu-toggle-btn {
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--border-subtle);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+.menu-toggle-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.dropdown-actions {
+    position: absolute;
+    /* NAPRAWA: Otwieranie w górę (nad przyciskiem) */
+    bottom: 100%; 
+    right: 0;
+    
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    min-width: 200px; /* Nieco większa szerokość dla ikon */
+    margin-bottom: 5px; /* Odstęp od przycisku '•••' */
+    
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    z-index: 10000; /* Bardzo wysoki z-index, aby zawsze był na wierzchu */
+    overflow: hidden;
+}
+
+.dropdown-actions .menu-item {
+    display: flex; /* KLUCZOWE: Użycie Flexbox do wyrównania ikon */
+    align-items: center;
+    padding: 8px 15px; 
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.dropdown-actions .menu-item:hover {
+    background-color: #33395c;
+}
+
+/* Style dla opcji usuwania */
+.dropdown-actions .menu-item.delete {
+    color: var(--color-danger);
+}
+.dropdown-actions .menu-item.delete:hover {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+/* Ikona Kosza */
+.dropdown-actions .menu-item .delete-icon {
+    margin-right: 10px;
+    font-size: 1.1em;
+}
+
+
+/* 1. Stylizacja Węższego Textarea */
+.mode-manual textarea {
+    /* KLUCZOWA ZMIANA: Zmniejszamy szerokość do 75% */
+    width: 95%; 
+    max-width: 100%;
+    
+    /* Zapewniamy, że pole jest wyrównane do lewej */
+    margin-left: 0; 
+    margin-right: auto; /* Poprawia wyrównanie */
+}
+
+/* 2. Stylizacja Przycisku (Pełna Szerokość Kontenera) */
+.mode-manual .manual-btn {
+    /* Resetujemy style z poprzedniej próby, aby przycisk zajął całą szerokość rodzica */
+    width: 10%; 
+    margin-left: 0; 
+    margin-right: 0;
+    
+    /* Przycisk pozostaje szeroki na cały kontener (100% rodzica) */
+}
+
+
+.header-details {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Dodaje odstęp między logo firmy a tekstem h3 */
+}
+
+.sentiment-icon-big {
+    width: 44px; 
+    height: 44px; 
+    object-fit: cover; 
+    margin-right: 10px;
+    flex-shrink: 0;
+
+    /* KLUCZOWA ZMIANA: Okrągły kształt */
+    border-radius: 50%; 
+    
+    /* Zabezpieczenie przed błędami clip-path (usuń, jeśli istnieje) */
+    clip-path: none; 
+    
+    /* Dodajemy wyraźną ramkę, która często wygląda dobrze na ciemnym tle */
+    border: 2px solid var(--border-subtle); 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); 
+}
+
+.app-header h1 {
+    display: flex; 
+    align-items: center;
+    font-size: 2.2em;
+    color: var(--text-light);
+    /* Utrzymaj resztę stylu */
+}
+
+.logo-base {
+    margin-right: 2px; /* Minimalny odstęp */
+}
+
+/* ---------------------------------------------------- */
+/* ANIMACJA PISANIA NA MASZYNIE (TYPING EFFECT) */
+/* ---------------------------------------------------- */
+
+/* Animacja pisania: Używa kroku, aby tekst pojawiał się literka po literce */
+@keyframes typing {
+    from { width: 0 }
+    to { width: 3ch } /* 3ch = 3 znaki (.a.i) */
+}
+
+/* Animacja migania kursora */
+@keyframes blink {
+    50% { border-color: transparent }
+}
+
+.logo-animated-text {
+    /* Ustawienie czcionki na stałą szerokość, aby animacja była płynna */
+    font-family: monospace; 
+    color: var(--color-primary); /* Akcent kolorystyczny dla .ai */
+    
+    /* Wymuszamy, aby element był wyświetlany w jednej linii */
+    white-space: nowrap; 
+    overflow: hidden; 
+    width: 0; /* Początkowo jest niewidoczny */
+    
+    /* Dodajemy pionowy kursor */
+    border-right: 3px solid var(--color-primary); 
+    
+    /* APLIKACJA ANIMACJI */
+    animation: 
+        typing 1.5s steps(3, end), /* 1. Animacja pisania */
+        blink 0.75s step-end infinite; /* 2. Animacja migania kursora */
+    
+    /* Wymuś powtórzenie animacji tylko raz, następnie usuń kursor */
+    animation-fill-mode: forwards; 
+}
+
+.live-notification {
+    /* ... (istniejące style) ... */
+    color: white;
+    font-weight: bold;
+    /* Ustaw domyślny, neutralny kolor */
+    background-color: var(--color-secondary-blue); 
+    border: 2px solid transparent; 
+}
+
+.live-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    z-index: 9999;
+    font-weight: bold;
+}
+
+/* 1. STAN POZYTYWNY (ZIELONY) */
+.live-notification.alert-positive {
+    border-color: #388e3c;
+}
+.live-notification.alert-positive:hover {
+    background-color: #388e3c;
+    transform: scale(1.02);
+}
+
+/* 2. STAN NEGATYWNY (CZERWONY) */
+.live-notification.alert-negative {
+    border-color: #d32f2f;
+}
+.live-notification.alert-negative:hover {
+    background-color: #d32f2f;
+    transform: scale(1.02);
+}
+
+/* 3. STAN NEUTRALNY (POMARAŃCZOWY/ŻÓŁTY) */
+.live-notification.alert-neutral {
+
+    color: var(--color-text-dark); /* Ciemny tekst na jasnym tle */
+    border-color: #ffa000;
+}
+.live-notification.alert-neutral:hover {
+    background-color: #ffa000;
+    transform: scale(1.02);
 }

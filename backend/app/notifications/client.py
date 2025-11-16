@@ -3,6 +3,8 @@ import websockets
 import json
 import os
 import logging
+import threading
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -47,32 +49,38 @@ async def send_notification_async(user_id: str, message: dict):
         return False
 
 
+def _start_async_loop_in_new_thread(coroutine):
+    """Uruchamia podaną funkcję asynchroniczną w całkowicie nowym, izolowanym wątku."""
+    
+    def run_loop():
+        try:
+            # Tworzymy nową, czystą pętlę zdarzeń
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            # Uruchamiamy zadanie i czekamy na jego zakończenie
+            loop.run_until_complete(coroutine)
+        except Exception as e:
+            logger.error(f"FAILURE IN ISOLATED THREAD: {e}")
+        finally:
+            # Kluczowe: Zamykamy pętlę, aby zapobiec wyciekom pamięci
+            loop.close()
+
+    # Uruchamiamy nowy wątek
+    thread = threading.Thread(target=run_loop)
+    thread.start()
+
+
 def send_notification(user_id: str, message: dict):
     """
-    Synchroniczne wywołanie asynchronicznej funkcji send_notification_async, 
-    poprzez przekazanie zadania do aktywnej pętli zdarzeń.
+    Funkcja opakowująca dla kodu synchronicznego. Uruchamia WebSockets w tle.
     """
-    try:
-        # 1. Pobieramy bieżącą, aktywną pętlę zdarzeń (którą uruchomił Gunicorn)
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        # Jeśli pętla nie jest ustawiona (np. w testach), tworzymy nową
-        loop = asyncio.get_event_loop_policy().new_event_loop()
-        
-    try:
-        # 2. Przekazujemy asynchroniczną funkcję do wykonania w pętli.
-        # run_coroutine_threadsafe jest idiomem do bezpiecznego przejścia sync->async
-        future = asyncio.run_coroutine_threadsafe(
-            send_notification_async(user_id, message),
-            loop
-        )
-        # 3. Czekamy na wynik (z timeoutem), co symuluje operację synchroniczną
-        future.result(timeout=5)
-        
-    except asyncio.TimeoutError:
-        logger.error("Notification push timed out after 5s.")
-    except Exception as e:
-        logger.error(f"FAILURE: Cannot safely push notification via threadsafe: {e}")
+    logger.info(f"Notification request received for user {user_id}.")
+    
+    # Tworzymy zadanie asynchroniczne
+    coroutine = send_notification_async(user_id, message)
+    
+    # Uruchamiamy je w osobnym, izolowanym wątku.
+    _start_async_loop_in_new_thread(coroutine)
 
 
 if __name__ == '__main__':

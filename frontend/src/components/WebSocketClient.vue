@@ -1,5 +1,5 @@
 <template>
-    <div v-if="notification" class="live-notification" @click="clearNotification">
+    <div v-if="notification" class="live-notification" :class="notificationClass" @click="clearNotification">
         🔔  {{ Array.isArray(notification) ? notification[0] : notification }}
     </div>
 </template>
@@ -16,6 +16,7 @@ export default defineComponent({
         const notification = ref<string | null>(null)
         const userId = ref<string | null>(null)
         const sentimentResult = ref<any>(null)
+        const notificationClass = ref('')
 
         // Broker address 
         const WS_URL = 'ws://localhost:8001'
@@ -44,30 +45,31 @@ export default defineComponent({
 
                 socket.value.onmessage = (event) => {
                     const data = JSON.parse(event.data)
-                    
-                    if (data.type === 'SENTIMENT_READY') {
-                                    sentimentResult.value = data
-                                    notification.value = data.content
-                                    localStorage.setItem('sentiment_result', JSON.stringify(data))
-                    }
+                    const type = data.type
 
-                    if (
-                        data.type === 'STOCK_ADDED' || 
-                        data.type === 'STOCK_DELETED' || 
-                        data.type === 'PORTFOLIO_ADDED' ||
-                        data.type == 'PORTFOLIO_DELETED' ||
-                        data.type === 'PRICE_ALERT'
-                    ) {
-                        // notifcation from Broker
+                    if (type === 'SENTIMENT_READY') {
+                        sentimentResult.value = data
                         notification.value = data.content
-                    }
-                    else if (data.type === 'PRICE_UPDATE') { 
-                        // Send message to Vue
+                        notificationClass.value = getAlertClass(data.sentiment)
+                        localStorage.setItem('sentiment_result', JSON.stringify(data))
+                        
+                    } else if (
+                        type === 'STOCK_ADDED' || 
+                        type === 'STOCK_DELETED' || 
+                        type === 'PORTFOLIO_ADDED' ||
+                        type === 'PORTFOLIO_DELETED'
+                    ) {
+ 
+                        notification.value = data.content
+                        
+                        notificationClass.value = 'alert-info'
+                        
+                    } else if (type === 'PRICE_UPDATE') { 
                         window.dispatchEvent(new CustomEvent('priceUpdated', { detail: data }))
                     }
                     
-                    console.log('Message received from WebSockets:', data)
-                };
+         
+                }
 
                 socket.value.onclose = (event) => {
                     console.log('WebSocket: Disconnected.', event.code, event.reason)
@@ -93,8 +95,19 @@ export default defineComponent({
                 // KLUCZOWA ZMIANA: WYŚLIJ SYGNAŁ DO RODZICA
                 window.dispatchEvent(new CustomEvent('sentimentDisplayed')); 
             }
-            notification.value = null;
+            notification.value = null
+            notificationClass.value = ''
         }
+
+        const getAlertClass = (sentiment: string) => {
+            switch (sentiment) {
+                case 'POSITIVE': return 'alert-positive'
+                case 'NEGATIVE': return 'alert-negative'
+                case 'NEUTRAL': return 'alert-neutral'
+                default: return ''
+            }
+        }
+
         onMounted(connectWebSocket)
         onUnmounted(disconnectWebSocket)
         
@@ -109,6 +122,7 @@ export default defineComponent({
         return {
             sentimentResult,
             notification,
+            notificationClass,
             clearNotification,
         }
     },

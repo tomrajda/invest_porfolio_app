@@ -2,8 +2,9 @@
   <div id="app-container">
     <header class="app-header">
         <h1>
-          <img src="/portseido_logo_no_text.svg" alt="portfolio tracker" class="app-logo">
-          portfolio tracker
+          <img src="/portseido_logo_no_text.svg" alt="portfolio tracker.ai" class="app-logo">
+          <span class="logo-base">portfolio_tracker</span>
+          <span class="logo-animated-text">.ai</span>
         </h1>
         <div v-if="isAuthenticated" class="account-menu-wrapper">
           <button 
@@ -52,11 +53,18 @@
                   :key="valuationKey" 
                   :portfolio-id="selectedPortfolioId"
                   :is-add-form-visible="showAddStockForm"         
-                  @toggle-add-stock="toggleAddStockForm" />
-          <SentimentForm 
+                  @toggle-add-stock="toggleAddStockForm"
+                  @open-sentiment-form="handleOpenSentiment"/>
+          <div v-if="showSentimentForm" class="sentiment-analysis-area">
+            <SentimentForm 
+                :ticker="selectedTickerForSentiment || 'N/A'"
+                :logo-url="selectedLogoUrl || ''" @close="toggleSentimentForm(false)"
+            />
+          </div>  
+          <!-- <SentimentForm 
                 :ticker="'AAPL'"
                 class="sentiment-analysis-area"
-          />
+          /> -->
           <div v-if="showAddStockForm" class="add-stock-area">
           <AddStockForm 
               :portfolio-id="selectedPortfolioId"
@@ -77,7 +85,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
 import { jwtDecode } from 'jwt-decode'
 import AuthForm from './components/AuthForm.vue'
 import CreatePortfolioForm from './components/CreatePortfolioForm.vue'
@@ -108,7 +116,11 @@ export default defineComponent({
     const userName = ref('john doe')
     const showCreatePortfolio = ref(false)
     const showAddStockForm = ref(false)
+    const showSentimentForm = ref(false)
 
+    const selectedTickerForSentiment = ref<string | null>(null)
+    const selectedLogoUrl = ref<string | null>(null)
+    
     const checkAuthStatus = () => {
       isAuthenticated.value = !!localStorage.getItem('access_token')
     }
@@ -174,7 +186,7 @@ export default defineComponent({
 
       valuationKey.value++
       showAddStockForm.value = false
-
+      
     }
     
     // -- Selection logic --
@@ -186,15 +198,38 @@ export default defineComponent({
       selectedPortfolioName.value = name
       // close the shares add form when switching portfolios
       showAddStockForm.value = false
-
+      showSentimentForm.value = false
     }
     const toggleAddStockForm = () => {
 
       // Shows / hides Add Stock Form
 
       showAddStockForm.value = !showAddStockForm.value
+      showSentimentForm.value = false
+      
+    }
+    const toggleSentimentForm = (isVisible: boolean) => {
+    if (isVisible) {
+        showAddStockForm.value = false
+    }
+    showSentimentForm.value = isVisible
+    } 
+    const handleOpenSentiment = (ticker: string, logoUrl: string) => {
+        selectedTickerForSentiment.value = ticker
+        selectedLogoUrl.value = logoUrl
+        toggleSentimentForm(true)
+    }
+    const closeAccountMenuOutside = (event: MouseEvent) => {
+
+        const menuWrapper = document.querySelector('.account-menu-wrapper'); 
+        const isClickInsideMenu = menuWrapper && menuWrapper.contains(event.target as Node);
+        
+        if (isMenuOpen.value && !isClickInsideMenu) {
+            isMenuOpen.value = false;
+        }
 
     }
+    
 
     onMounted(() => {
             checkAuthStatus()
@@ -202,10 +237,12 @@ export default defineComponent({
             if (localStorage.getItem('access_token')) {
                 handleLoginSuccess()
             }
-
+            document.addEventListener('click', closeAccountMenuOutside);
         })
 
-   
+    onUnmounted(() => {
+        document.removeEventListener('click', closeAccountMenuOutside);
+    })
 
     return {
       isAuthenticated,
@@ -217,6 +254,11 @@ export default defineComponent({
       valuationKey,
       showCreatePortfolio,
       showAddStockForm,
+      selectedTickerForSentiment,
+      showSentimentForm,
+      selectedLogoUrl,
+      toggleSentimentForm,
+      handleOpenSentiment,
       handleLoginSuccess,
       handleLogout,
       selectPortfolio,

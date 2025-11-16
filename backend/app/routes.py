@@ -367,7 +367,7 @@ async def analyze_and_notify(user_id: str, ticker: str, text_content: str):
             'type': 'SENTIMENT_READY',
             'ticker': ticker,
             'sentiment': sentiment,
-            'content': f"Twoja analiza nastrojów dla {ticker} jest gotowa: {sentiment}. Kliknij, aby zobaczyć wyniki."
+            'content': f"Your sentiment analysis for {ticker} is ready: {sentiment}."
         }
         # Zapewnij, że to jest czyste await
         success = await send_notification_async(user_id, notification_message)

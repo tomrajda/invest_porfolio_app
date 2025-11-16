@@ -52,7 +52,54 @@
             <td :class="stock.flash">{{ formatCurrency(stock.current_price) }}</td>
             <td :class="stock.flash">{{ formatCurrency(stock.market_value) }}</td>
             <td :class="stock.profit_loss > 0 ? 'profit' : 'loss'">{{ formatCurrency(stock.profit_loss) }}</td>
-            <td><button @click="deleteStock(stock.id)" class="delete-btn">Delete</button></td>
+            <td>
+                <div class="action-menu-wrapper" @mouseleave="activeMenuStockId = null">
+                    <button 
+                        @click="toggleMenu(stock.id)" 
+                        class="menu-toggle-btn"
+                        @mouseover="activeMenuStockId = stock.id"
+                    >
+                        •••
+                    </button>
+
+                    <div v-if="activeMenuStockId === stock.id" class="dropdown-actions" ref="menuActions"> 
+                        <a 
+                            href="#" 
+                            class="menu-item" 
+                            @click.prevent="triggerAutoAnalysis(stock.ticker)"
+                        >
+                            <img 
+                                src="https://upload.wikimedia.org/wikipedia/commons/1/1d/Google_Gemini_icon_2025.svg" 
+                                alt="Gemini Logo" 
+                                class="sentiment-icon" 
+                                loading="lazy"
+                            /> Auto Sentiment
+                        </a>
+
+                         <a 
+                            href="#" 
+                            class="menu-item" 
+                            @click.prevent="openManualSentimentForm(stock.ticker)"
+                        >
+                            <img 
+                                src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google-gemini.svg" 
+                                alt="Manual Analysis Icon" 
+                                class="sentiment-icon" 
+                                loading="lazy"
+                            /> Manual Sentiment
+                        </a>
+                        
+                        <div class="menu-divider"></div>
+                        <a 
+                            href="#" 
+                            class="menu-item delete" 
+                            @click.prevent="deleteStock(stock.id)"
+                        >
+                            <span class="delete-icon">🗑️</span> Delete Stock
+                        </a>
+                    </div>
+                </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -88,7 +135,7 @@ export default defineComponent({
     portfolioId: { type: Number, required: true },
     isAddFormVisible: { type: Boolean, default: false }
   },
-  emits: ['toggle-add-stock'],
+  emits: ['toggle-add-stock', 'open-sentiment-form', 'trigger-auto-analysis'],
   setup(props, { emit }) {
     const valuationData = ref<PortfolioValuation | null>(null)
     const loading = ref(false)
@@ -97,6 +144,12 @@ export default defineComponent({
     const instance = getCurrentInstance()
     const $api = instance?.appContext.config.globalProperties.$api
     const totalFlash = ref('')
+
+    const activeMenuStockId = ref<number | null>(null)
+
+    const toggleMenu = (stockId: number) => {
+        activeMenuStockId.value = activeMenuStockId.value === stockId ? null : stockId
+    }
 
     const formatCurrency = (value: number | string | null): string => {
         if (value === null) return 'N/A'
@@ -222,6 +275,56 @@ export default defineComponent({
 
     }
     
+
+
+    const triggerAutoAnalysis = async (ticker: string) => {
+        activeMenuStockId.value = null; // Zamknij menu
+        
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        try {
+            // KLUCZOWE: Wysłanie żądania POST do Flaska.
+            // Używamy POST, ponieważ żądanie wyzwala akcję po stronie serwera (analiza AI).
+            const response = await $api.post(
+                // Endpoint z routes.py: /api/stock/<ticker>/analyze
+                `/stock/${ticker}/analyze`, 
+                {}, // Pusty body POST
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            // Zamiast alertu, możemy tutaj obsłużyć odpowiedź 202 Accepted od Flaska
+            console.log(`Analiza dla ${ticker} rozpoczęta:`, response.data.msg);
+
+        } catch (e: any) {
+             console.error('Błąd uruchamiania analizy:', e);
+             alert(`Błąd: Nie udało się uruchomić analizy AI. ${e.response?.data?.msg || 'Sprawdź logi backendu.'}`);
+        }
+    }
+
+    const openManualSentimentForm = (ticker: string) => {
+        activeMenuStockId.value = null
+
+        const stocks = valuationData.value?.stocks;
+        const stockToAnalyze = stocks?.find(s => s.ticker === ticker)
+        const logoUrl = stockToAnalyze?.logo_url || ''
+
+        emit('open-sentiment-form', ticker, logoUrl)
+    }
+
+    const closeMenuOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const menuWrapper = target.closest('.action-menu-wrapper');
+        
+        if (!menuWrapper) {
+            activeMenuStockId.value = null;
+        }
+    }
+
     watch(() => props.portfolioId, (newId) => {
       if (newId) {
         fetchValuation(newId)
@@ -231,10 +334,12 @@ export default defineComponent({
     onMounted(() => {
             window.addEventListener('priceUpdated', updateTablePrice as EventListener)
             fetchValuation(props.portfolioId)
+            document.addEventListener('click', closeMenuOutside)
     })
 
     onUnmounted(() => {
-            window.removeEventListener('priceUpdated', updateTablePrice as EventListener);
+            window.removeEventListener('priceUpdated', updateTablePrice as EventListener)
+            document.removeEventListener('click', closeMenuOutside)
     })
 
     return {
@@ -242,6 +347,10 @@ export default defineComponent({
       loading,
       error,
       totalFlash,
+      activeMenuStockId,
+      openManualSentimentForm,
+      triggerAutoAnalysis,
+      toggleMenu,
       formatCurrency,
       deleteStock,
       handleToggle,
