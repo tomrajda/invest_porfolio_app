@@ -1,6 +1,9 @@
 <template>
   <div class="valuation-container">
-    <div v-if="loading" class="info-message">Loading...</div>
+<div v-if="loading" class="valuation-loading-state"> 
+  <span class="loading-spinner"></span> 
+  Loading market data...
+</div>
     <div v-else-if="error" class="info-message error">{{ error }}</div>
     
     <div v-else-if="valuationData">

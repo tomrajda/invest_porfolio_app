@@ -1077,3 +1077,49 @@ button[type="submit"]:disabled {
     background-color: #ffa000;
     transform: scale(1.02);
 }
+
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--color-primary); /* Użyj akcentu */
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    margin-bottom: 15px;
+    vertical-align: middle;
+}
+
+.valuation-container {
+    min-height: 430px; 
+    
+
+    position: relative; 
+}
+
+/* Styl dla info-message w trybie loading */
+.info-message {
+    /* Ustawiamy min-height na zero lub auto, jeśli kontener nadrzędny ma min-height */
+    text-align: center;
+    padding: 20px;
+    
+    /* Upewnij się, że nie ma marginesów, które by to psuły */
+    margin: 0; 
+}
+
+.valuation-loading-state {
+    display: flex;
+    min-height: inherit; /* Dziedziczy min-height z valuation-container */
+    flex-direction: column;
+    justify-content: center; /* Centrowanie w pionie */
+    align-items: center; /* Centrowanie w poziomie */
+    font-size: 1.1em;
+    color: var(--color-text-subtle);
+}
