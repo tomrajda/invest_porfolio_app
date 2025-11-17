@@ -345,31 +345,34 @@ def delete_portfolio(portfolio_id):
         return jsonify({"msg": "An internal error occurred during deletion."}), 500
 
 # -----------------------------------------------------------
-# Logika Analizy AI (URUCHAMIANA W TLE PRZEZ SCHEDULER)
+# Gemini AI analysis logic
 # -----------------------------------------------------------
 async def analyze_and_notify(user_id: str, ticker: str, text_content: str):
-    """Asynchronicznie wysyła tekst do serwisu Gemini i powiadamia użytkownika."""
+    """
+    Asynchronously sends text to the 
+    Gemini service and notifies the user.
+    """
     try:
-        # 1. Wysyłka do serwisu Gemini Analyst (REST API)
+        # 1. Sending to Gemini Analyst (REST API)
         response = requests.post(
             f"{GEMINI_ANALYST_URL}/analyze-sentiment",
             json={"ticker": ticker, "text": text_content},
-            timeout=30 # Długi timeout dla Gemini
+            timeout=30 # LONG TIMEOUT FOR GEMINI
         )
         response.raise_for_status()
         
-        # 2. Odbiór wyniku
+        # 2. Receive response
         result = response.json()
         sentiment = result.get('sentiment', 'N/A')
         
-        # 3. Wysłanie powiadomienia do Brokera (WebSockets)
+        # 3. Send notification to broker
         notification_message = {
             'type': 'SENTIMENT_READY',
             'ticker': ticker,
             'sentiment': sentiment,
             'content': f"Your sentiment analysis for {ticker} is ready: {sentiment}."
         }
-        # Zapewnij, że to jest czyste await
+        
         success = await send_notification_async(user_id, notification_message)
         
         if success:
@@ -379,52 +382,78 @@ async def analyze_and_notify(user_id: str, ticker: str, text_content: str):
 
     except Exception as e:
         logger.error(f"AI Analysis Failed for {ticker}: {e}")
+        
+        notification_message = {
+            'type': 'SENTIMENT_FAILED',
+            'content': f"Your sentiment analysis for {ticker} failed.\n"
+            +"The model is overloaded. Please try again later."
+        }
+        
+        success = await send_notification_async(user_id, notification_message)
 
 # -----------------------------------------------------------
-# endpoint: triggers sentiment analysis
+# asynchronous analysis logic
+# -----------------------------------------------------------
+def start_analysis_task(user_id: str, ticker: str, text_content: str):
+    """
+    Starts asynchronous analysis in a 
+    new thread with an isolated event loop.
+    """
+    def run_analysis_in_isolated_thread():
+        # 1. Creating and setting a new loop for a thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # 2. Starting an asynchronous task
+        try:
+            loop.run_until_complete(analyze_and_notify(user_id, ticker, text_content))
+        except Exception as e:
+            logger.error(f"FAILURE IN ISOLATED THREAD: {e}")
+        finally:
+            # 3. Clear loop
+            loop.close()
+            
+    thread = threading.Thread(target=run_analysis_in_isolated_thread)
+    thread.start()
+    logger.info(f"Analysis started in background thread for {ticker}.")
+
+# -----------------------------------------------------------
+# endpoint: triggers auto mode sentiment analysis
 # -----------------------------------------------------------
 @api.route('/stock/<string:ticker>/analyze', methods=['POST'])
 @jwt_required()
 def trigger_sentiment_analysis(ticker):
     user_id = get_jwt_identity()
     
-    logger.error(f"--- TRIGGER RECEIVED for user {user_id} and ticker {ticker} ---") # LOG TESTOWY
+    logger.error(f"--- TRIGGER RECEIVED for user {user_id} and ticker {ticker} ---")
 
-    # 1. Pobranie tekstu z Finnhub (synchroniczne)
+    # 1. Get recent news text from Finnhub
     news_text = get_recent_news_text(ticker)
-    if "Błąd połączenia" in news_text or "Brak nowych wiadomości" in news_text:
+    if "Connection Error" in news_text or "No new messages" in news_text:
         return jsonify({"msg": news_text}), 400
 
-    # 2. Uruchomienie Asynchronicznej Analizy w TLE
+    # 2. Launching Asynchronous Analysis in background
     try:
-        import threading # Zapewnij, że ten import jest na górze pliku
-        
-        # Funkcja opakowująca, która uruchamia asynchroniczne zadanie (analyze_and_notify)
-        def start_analysis_in_thread():
-            import asyncio
-            # Używamy nowej, IZOLOWANEJ pętli w nowym wątku dla bezpieczeństwa
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(analyze_and_notify(user_id, ticker, news_text))
-            loop.close()
-
-        thread = threading.Thread(target=start_analysis_in_thread)
-        thread.start()
+        # starts an asynchronous task (analyze_and_notify)
+        start_analysis_task(user_id, ticker, news_text)
         
     except Exception as e:
         logger.error(f"Could not start analysis thread: {e}")
         return jsonify({"msg": "Failed to start AI analysis process."}), 500
 
-    # 3. Zwrócenie natychmiastowej odpowiedzi (202 Accepted)
+    # 3. Return an immediate response (202 Accepted)
     return jsonify({
         "msg": f"AI analysis for {ticker} started in the background. You will receive a notification."
     }), 202
 
+# -----------------------------------------------------------
+# endpoint: triggers manual mode (usr text) sentiment analysis
+# -----------------------------------------------------------
 @api.route('/stock/<string:ticker>/analyze/manual', methods=['POST'])
 @jwt_required()
 def trigger_manual_sentiment_analysis(ticker):
     """
-    Uruchamia analizę AI w tle dla tekstu wprowadzonego przez użytkownika.
+    Runs AI analysis in the background for text entered by the user.
     """
     user_id = get_jwt_identity()
     data = request.get_json()
@@ -433,13 +462,9 @@ def trigger_manual_sentiment_analysis(ticker):
     if not text_content or len(text_content) < 50:
         return jsonify({"msg": "Text content must be at least 50 characters long for analysis."}), 400
 
-    # 2. Uruchomienie Asynchronicznej Analizy w TLE (aby nie blokować REST API)
-    # Tworzymy i uruchamiamy nowy wątek dla asynchronicznej funkcji analyze_and_notify
     try:
-        # UWAGA: Użycie threading.Thread do uruchomienia asyncio.run(async_func) jest kluczowe 
-        # w synchronicznym Flasku, aby uniknąć blokowania
-        thread = threading.Thread(target=lambda: asyncio.run(analyze_and_notify(user_id, ticker, text_content)))
-        thread.start()
+        start_analysis_task(user_id, ticker, text_content)
+
     except Exception as e:
         logger.error(f"Could not start manual analysis thread: {e}")
         return jsonify({"msg": "Failed to start AI analysis process."}), 500

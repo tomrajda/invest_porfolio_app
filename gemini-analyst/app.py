@@ -3,16 +3,16 @@ import json
 import logging
 import re
 import json
-from flask import Flask, request, jsonify
 
-# WAŻNE: Musisz zainstalować te biblioteki w price-checker/requirements.txt też!
+from flask import Flask, request, jsonify
 from google import genai
 from google.genai.errors import APIError
 
 logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
 
-# Konfiguracja API Gemini
+# Config API Gemini
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 if GEMINI_API_KEY:
     client = genai.Client(api_key=GEMINI_API_KEY)
@@ -22,7 +22,7 @@ else:
     client = None
 
 # -----------------------------------------------------------
-# GŁÓWNY ENDPOINT ANALIZY (Używany przez Flask)
+# MAIN ENDPOINT for Analysis (used by Flask)
 # -----------------------------------------------------------
 @app.route('/analyze-sentiment', methods=['POST'])
 def analyze_sentiment():
@@ -38,7 +38,7 @@ def analyze_sentiment():
 
     logging.info(f"Analyzing sentiment for {ticker}: {text_to_analyze[:50]}...")
 
-    # Instrukcje dla modelu Gemini (Prompt Engineering)
+    # PROMPTS for Gemini model (prompt engineering)
     system_instruction = (
         "You are a specialized financial analyst. Analyze the following news headlines/article "
         "and determine the overall market sentiment. Respond ONLY with a single JSON object. "
@@ -51,7 +51,7 @@ def analyze_sentiment():
     )
 
     try:
-        # 1. Wywołanie API Gemini
+        # 1. Gemini API call
         response = client.models.generate_content(
             model=MODEL,
             contents=[prompt],
@@ -62,20 +62,18 @@ def analyze_sentiment():
         
         raw_text = response.text.strip()
         
-        # --- KLUCZOWA ZMIANA: Użycie RegEx do wyodrębnienia czystego JSON ---
-        
-        # Wzór RegEx szuka pierwszego obiektu JSON {...} niezależnie od otaczających znaków
+        # Using RegEx to extract clean JSON 
         json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
         
         if not json_match:
             logging.error(f"Could not find JSON object in response: {raw_text}")
             return jsonify({"msg": "AI response was incomplete or not formatted as expected."}), 500
         
-        # Używamy znalezionego, czystego ciągu JSON
+        # use the clean JSON string found
         clean_json_string = json_match.group(0)
 
-        # 2. Parsowanie odpowiedzi
-        json_response = json.loads(clean_json_string) # Używamy czystego JSON
+        # 2. Parsing response
+        json_response = json.loads(clean_json_string)
         
         return jsonify({
             "ticker": ticker,
@@ -89,7 +87,6 @@ def analyze_sentiment():
     except json.JSONDecodeError:
         logging.error(f"Gemini returned unparseable JSON: {raw_text}")
         return jsonify({"msg": "AI returned unparseable data."}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)

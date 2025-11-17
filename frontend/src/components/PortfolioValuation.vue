@@ -150,7 +150,6 @@ export default defineComponent({
     const toggleMenu = (stockId: number) => {
         activeMenuStockId.value = activeMenuStockId.value === stockId ? null : stockId
     }
-
     const formatCurrency = (value: number | string | null): string => {
         if (value === null) return 'N/A'
         const num = typeof value === 'string' ? parseFloat(value) : value
@@ -207,7 +206,6 @@ export default defineComponent({
         fetchValuation(props.portfolioId)
       }
     }
-    
     const updateTablePrice = (event: CustomEvent) => {
         const update = event.detail
 
@@ -223,7 +221,6 @@ export default defineComponent({
             const stock: StockValuation = valuationData.value.stocks[stockIndex]!
             const oldTotal = valuationData.value!.total_market_value
 
-            // Zabezpieczenie przed użyciem null/undefined
             const oldPrice = stock.current_price !== null ? stock.current_price : 0
             let flashClass = ''
             
@@ -233,21 +230,21 @@ export default defineComponent({
                 flashClass = 'flash-down'
             }
 
-          // Aktualizacja cen
+          // Prices update
           stock.current_price = newPrice
           
-          // Przeliczenie wartości (używając nowej ceny)
+          // Recalculation of value (using the new price)
           const shares = parseFloat(stock.shares)
           const purchasePrice = parseFloat(stock.purchase_price)
           
           stock.market_value = newPrice * shares
           stock.profit_loss = (stock.market_value - (purchasePrice * shares))
           
-          // Wprowadzenie i usunięcie klasy flash
+          // Adding and removing a flash class
           stock.flash = flashClass
 
           setTimeout(() => {
-              stock.flash = ''; // Usuń klasę flash po 1 sekundzie
+              stock.flash = ''; // Remove flash class after 1 sec
           }, 1000)          
           
                   let newTotal = 0
@@ -274,22 +271,18 @@ export default defineComponent({
 
 
     }
-    
-
-
     const triggerAutoAnalysis = async (ticker: string) => {
-        activeMenuStockId.value = null; // Zamknij menu
+        activeMenuStockId.value = null
         
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
+        const token = localStorage.getItem('access_token')
+        if (!token) return
 
         try {
-            // KLUCZOWE: Wysłanie żądania POST do Flaska.
-            // Używamy POST, ponieważ żądanie wyzwala akcję po stronie serwera (analiza AI).
+
             const response = await $api.post(
-                // Endpoint z routes.py: /api/stock/<ticker>/analyze
+
                 `/stock/${ticker}/analyze`, 
-                {}, // Pusty body POST
+                {}, // EMPTY body POST
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -297,15 +290,13 @@ export default defineComponent({
                 }
             );
 
-            // Zamiast alertu, możemy tutaj obsłużyć odpowiedź 202 Accepted od Flaska
-            console.log(`Analiza dla ${ticker} rozpoczęta:`, response.data.msg);
+            console.log(`Auto analysis for ${ticker} started:`, response.data.msg)
 
         } catch (e: any) {
-             console.error('Błąd uruchamiania analizy:', e);
-             alert(`Błąd: Nie udało się uruchomić analizy AI. ${e.response?.data?.msg || 'Sprawdź logi backendu.'}`);
+             console.error('Error during analysis running:', e);
+             alert(`Error: Failed to start AI analysis. Error: Failed to start AI analysis. ${e.response?.data?.msg || 'Check backend logs.'}`)
         }
     }
-
     const openManualSentimentForm = (ticker: string) => {
         activeMenuStockId.value = null
 
@@ -315,13 +306,12 @@ export default defineComponent({
 
         emit('open-sentiment-form', ticker, logoUrl)
     }
-
     const closeMenuOutside = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
-        const menuWrapper = target.closest('.action-menu-wrapper');
+        const menuWrapper = target.closest('.action-menu-wrapper')
         
         if (!menuWrapper) {
-            activeMenuStockId.value = null;
+            activeMenuStockId.value = null
         }
     }
 
@@ -355,7 +345,7 @@ export default defineComponent({
       deleteStock,
       handleToggle,
       handleRefreshValuation
-    };
+    }
   },
-});
+})
 </script>

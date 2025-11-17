@@ -1,6 +1,7 @@
 import os
 import requests
 from .cache_service import get_cache, set_cache
+from datetime import datetime, timedelta
 
 FINNHUB_URL = "https://finnhub.io/api/v1"
 API_KEY = os.environ.get('FINNHUB_API_KEY')
@@ -77,28 +78,32 @@ def get_company_metadata(ticker: str) -> dict | None:
 
 def get_recent_news_text(ticker: str, count: int = 5) -> str:
     """
-    Pobiera 'count' nagłówków wiadomości dla danego symbolu i łączy je w jeden tekst.
+    Retrieves the count of message headers for 
+    a given symbol and combines them into a single text.
     """
-    if not API_KEY:
-        return "Brak klucza API Finnhub."
 
-    # Endpoint do pobierania wiadomości
-    url = f"{FINNHUB_URL}/company-news?symbol={ticker}&from=2024-01-01&to=2025-12-31&token={API_KEY}"
-    # Uwaga: Daty są mockowane dla API Finnhub. W praktyce użyjesz dynamicznych dat.
+    if not API_KEY:
+        return "No Finnhub API key"
+
+    # endpoint for retrieving news
+    today = datetime.now().strftime('%Y-%m-%d')
+    three_weeks_ago = (datetime.now() - timedelta(weeks=3)).strftime('%Y-%m-%d')
+
+    url = f"{FINNHUB_URL}/company-news?symbol={ticker}&from={three_weeks_ago}&to={today}&token={API_KEY}"
 
     try:
         response = requests.get(url, timeout=5)
         response.raise_for_status()
         news_data = response.json()
         
-        # Ekstrakcja nagłówków z pierwszych 'count' wiadomości
+        # Extracting headers from the first ‘count’ messages
         headlines = [item.get('headline') for item in news_data[:count] if item.get('headline')]
         
         if not headlines:
-            return f"Brak nowych wiadomości dla {ticker}."
+            return f"No news for {ticker}."
             
-        # Złączenie nagłówków w jeden tekst, który zostanie przekazany do Gemini
+        # Combining headers into a single text that will be sent to Gemini
         return " | ".join(headlines)
         
     except requests.exceptions.RequestException as e:
-        return f"Błąd połączenia z Finnhub (News): {e}"
+        return f"Connectio Error with Finnhub (News): {e}"

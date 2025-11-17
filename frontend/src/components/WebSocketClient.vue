@@ -57,7 +57,8 @@ export default defineComponent({
                         type === 'STOCK_ADDED' || 
                         type === 'STOCK_DELETED' || 
                         type === 'PORTFOLIO_ADDED' ||
-                        type === 'PORTFOLIO_DELETED'
+                        type === 'PORTFOLIO_DELETED' ||
+                        type === 'SENTIMENT_FAILED'
                     ) {
  
                         notification.value = data.content
@@ -92,7 +93,7 @@ export default defineComponent({
                 localStorage.setItem('last_sentiment_result', JSON.stringify(sentimentResult.value));
                 sentimentResult.value = null;
                 
-                // KLUCZOWA ZMIANA: WYŚLIJ SYGNAŁ DO RODZICA
+                // SEND SIGNAL TO PARENT
                 window.dispatchEvent(new CustomEvent('sentimentDisplayed')); 
             }
             notification.value = null
