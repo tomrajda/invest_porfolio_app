@@ -1,3 +1,4 @@
+@Vue.js @Flask @Python @JavaScript @LLM @PromptEngineering @Gemini @Redis @Prometheus @Grafana @WebSocket @asyncio @Docker
 ## Investment Portfolio Tracker (Vue.js + Flask Full-Stack)
 
 A modern, containerized Full-Stack application designed to track user investment portfolios, providing real-time valuation of holdings through external market APIs.
